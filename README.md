@@ -8,6 +8,8 @@ Mais la durée de vie de cet esprit est limité, après un certain temps, votre 
 
 ## Précision
 
+*Voir le fichier example.png*
+
 * Niveau :
   * 2D
   * Design : Foret
