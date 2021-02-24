@@ -209,9 +209,13 @@ xcopy /y /d  "$(SolutionDir)external\SFML-2.5.1\bin\*.dll" "$(OutDir)"</Command>
     </ClCompile>
     <ClCompile Include="Engine\Collision.cpp" />
     <ClCompile Include="Engine\Game.cpp" />
+    <ClCompile Include="Game\Displayable.cpp" />
     <ClCompile Include="Game\Door.cpp" />
     <ClCompile Include="Game\GameDemo.cpp" />
+    <ClCompile Include="Game\GameLevel.cpp" />
     <ClCompile Include="Game\MainCharacter.cpp" />
+    <ClCompile Include="Game\Player.cpp" />
+    <ClCompile Include="Game\test.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -220,9 +224,13 @@ xcopy /y /d  "$(SolutionDir)external\SFML-2.5.1\bin\*.dll" "$(OutDir)"</Command>
     <ClInclude Include="..\external\imgui-sfml-master\imgui-SFML.h" />
     <ClInclude Include="Engine\Collision.h" />
     <ClInclude Include="Engine\Game.h" />
+    <ClInclude Include="Game\Displayable.h" />
     <ClInclude Include="Game\Door.h" />
     <ClInclude Include="Game\GameDemo.h" />
+    <ClInclude Include="Game\GameLevel.h" />
     <ClInclude Include="Game\MainCharacter.h" />
+    <ClInclude Include="Game\Player.h" />
+    <ClInclude Include="Game\test.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -31,8 +31,7 @@ namespace
 }
 
 
-MainCharacter::MainCharacter()
-    : m_IsPlayingEndGame(false), m_Position(250.0f, 250.0f), m_IsUsingJoystick(false), m_JoystickIndex(0), m_WasButtonPressed(false)
+MainCharacter::MainCharacter(): m_IsPlayingEndGame(false), m_Position(250.0f, 250.0f), m_IsUsingJoystick(false), m_JoystickIndex(0), m_WasButtonPressed(false)
 {
     m_Texture.loadFromFile(".\\Assets\\red_ball.bmp");
 
