@@ -7,11 +7,14 @@ class Player : public Displayable
 public:
 	Player();
 	Player(const Player&);
-	Player(sf::Vector2f startPosition);
 
-	void Update(float deltaTime) override;
-	void StartEndGame() override;
+	virtual void Update(float deltaTime);
+	virtual void StartEndGame();
+
+	void setGrounded(bool d);
+	bool isGrounded() const;
 
 private:
 	sf::Vector2f m_Velocity;
+	bool m_onGround;
 };

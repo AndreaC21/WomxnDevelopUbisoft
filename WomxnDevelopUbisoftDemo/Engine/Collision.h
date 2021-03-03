@@ -40,6 +40,14 @@ protected:
         m_BoundingBox.height = size.y;
     }
 
+    inline void SetBoundingBox(const sf::FloatRect r)
+    {
+        m_BoundingBox.left = r.left;
+        m_BoundingBox.top = r.top;
+        m_BoundingBox.width = r.width;
+        m_BoundingBox.height = r.height;
+    }
+
     inline void SetCenter(const sf::Vector2f& center)
     {
         m_BoundingBox.left = center.x - (m_BoundingBox.width / 2.0f);

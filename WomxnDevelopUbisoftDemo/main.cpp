@@ -5,10 +5,9 @@
 
 int main()
 {
-   // GameDemo game{};
-    //game.RunGameLoop();
+    //GameDemo game{};
 
-    GameLevel game{};
+    GameLevel game;
     game.RunGameLoop();
 
 

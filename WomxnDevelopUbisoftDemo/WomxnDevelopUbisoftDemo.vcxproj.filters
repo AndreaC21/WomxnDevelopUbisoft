@@ -47,6 +47,9 @@
     <ClCompile Include="Game\GameLevel.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Platform.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -86,6 +89,10 @@
     <ClInclude Include="Game\GameLevel.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Game\Platform.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -97,5 +104,8 @@
     <Filter Include="Engine\ImGui">
       <UniqueIdentifier>{f630cd3c-1cea-471c-9a95-a35b86a8dd9e}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WomxnDevelopUbisoftDemo.rc" />
   </ItemGroup>
 </Project>
