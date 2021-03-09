@@ -36,7 +36,7 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, bool te
 	m_IsPlayingEndGame = false;
 }
 
-Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int width)
+Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int width,float scale)
 {
 	m_Position = position;
 	
@@ -46,8 +46,8 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int wid
 	}
 	m_Texture.setRepeated(true);
 	m_Sprite.setTexture(m_Texture);
-	
-	m_Sprite.setTextureRect(sf::IntRect(0, 0, width, m_Texture.getSize().x));
+	m_Sprite.setScale(scale, scale);
+	m_Sprite.setTextureRect(sf::IntRect(0, 0, width/scale, m_Texture.getSize().x));
 	
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
 	
@@ -55,14 +55,36 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int wid
 	m_IsPlayingEndGame = false;
 	
 }
+Displayable::Displayable(sf::Vector2f position, std::string pathTexture,float scale)
+{
+	m_Position = position;
 
+	m_Texture.loadFromFile(".\\Assets\\" + pathTexture);
+	
+	m_Sprite.setTexture(m_Texture);
+	m_Sprite.setScale(scale,scale);
+
+	m_Sprite.setPosition(m_Position.x, m_Position.y);
+
+
+	m_IsPlayingEndGame = false;
+
+}
 void Displayable::Update(float deltaTime)
 {
 }
 
 void Displayable::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+	sf::RectangleShape m_Rectangle;
+	m_Rectangle.setPosition(m_BoundingBox.left, m_BoundingBox.top);
+	m_Rectangle.setSize(sf::Vector2f(m_BoundingBox.width, m_BoundingBox.height));
+	m_Rectangle.setOutlineThickness(3);
+	m_Rectangle.setOutlineColor(sf::Color{ static_cast<uint8_t>(1 * 255.0f), static_cast<uint8_t>(0 * 255.0f), static_cast<uint8_t>(0 * 255.0f) });
+	target.draw(m_Rectangle);
+	
 	target.draw(m_Sprite);
+	
 }
 
 void Displayable::StartEndGame()

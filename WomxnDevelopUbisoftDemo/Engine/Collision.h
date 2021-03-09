@@ -23,6 +23,28 @@ public:
         return sf::Vector2f(m_BoundingBox.left + (m_BoundingBox.width / 2.0f), m_BoundingBox.top + (m_BoundingBox.height / 2.0f));
     }
 
+    // 0 -> up,1->down,2->left,3->right
+    inline const int index_collision(const BoxCollideable& other) const
+    {
+        sf::FloatRect box = other.GetBoundingBox();
+        float box_TopRight = box.top + box.width;
+        float box_BottomLeft = box.top + box.height;
+        float box_BottomRight = box.height + box.width;
+        float my_TopRight = m_BoundingBox.top + m_BoundingBox.width;
+        float my_BottomRight = m_BoundingBox.height + m_BoundingBox.width;
+        float my_BottomLeft = m_BoundingBox.height + m_BoundingBox.top;
+
+        // up
+        if (m_BoundingBox.top > box_BottomLeft && m_BoundingBox.top < box_BottomRight &&
+            my_TopRight > box_BottomLeft && my_TopRight < box_BottomRight &&
+            m_BoundingBox.top <= box_BottomLeft) return 0;
+        //down
+        if (my_BottomLeft > box.top && my_BottomLeft < box_TopRight &&
+            my_BottomRight > box.top && my_BottomRight < box_TopRight &&
+            my_BottomLeft >= box.top) return 1;
+        return -1; 
+    }
+
 protected:
     inline void SetBoundingBox(float left, float top, float width, float height)
     {
@@ -52,6 +74,11 @@ protected:
     {
         m_BoundingBox.left = center.x - (m_BoundingBox.width / 2.0f);
         m_BoundingBox.top = center.y - (m_BoundingBox.height / 2.0f);
+    }
+    inline void SetCenter(const float& x, const float& y)
+    {
+        m_BoundingBox.left = x;
+        m_BoundingBox.top = y;
     }
 
     sf::FloatRect m_BoundingBox;

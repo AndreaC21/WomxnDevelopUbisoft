@@ -13,8 +13,10 @@ public:
 
 	void setGrounded(bool d);
 	bool isGrounded() const;
+	void AdjustPosition(Displayable d);
 
 private:
 	sf::Vector2f m_Velocity;
 	bool m_onGround;
+	
 };

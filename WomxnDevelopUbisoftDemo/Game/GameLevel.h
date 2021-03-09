@@ -5,6 +5,54 @@
 #include <Game/MainCharacter.h>
 #include <Game/Platform.h>
 
+
+
+class Case
+{
+public:
+    Case();
+    Case(const Case&);    
+   
+
+    static int size_pixel_x;
+    static int size_pixel_y;
+    void setContains(Displayable d);
+    Displayable getContains();
+    bool isEmpty() const;
+
+private:
+    
+    bool m_empty;
+    Displayable m_displayable;
+
+};
+
+class Level
+{
+public:
+    Level();
+    Level(const Level&);
+    Level(int i, int j);
+
+    static int grid_size;
+
+    Case at(int i, int j) const;
+
+    void set(int i, int j, Displayable d) const;
+    void set_platform(int i, int j) const;
+
+    int getSize_n() const;
+    int getSize_m() const;
+   
+   
+
+private:
+    Case** grid;
+    int n,m;
+    void genereLevel();
+    void path_planning_a_star(Case start,Case target);
+};
+
 class GameLevel : public Game
 {
 public:
@@ -18,12 +66,17 @@ public:
     void generatePlatform();
 
 private:
-   
+
+    void buildListPlatform();
+
+    static int max_size_x, max_size_y;
     Player m_player;
-    Platform m_p;
+   
     std::vector<Platform> list_platform;
+    std::vector<Displayable> list_displayable;
     Displayable m_Background;
     sf::View m_View;
     bool m_IsFinished;
-   
+    Level m_level;
+
 };
