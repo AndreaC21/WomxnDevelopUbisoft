@@ -4,6 +4,7 @@
 #include <Game/Player.h>
 #include <Game/MainCharacter.h>
 #include <Game/Platform.h>
+#include <Game/Obstacle.h>
 
 
 
@@ -13,17 +14,21 @@ public:
     Case();
     Case(const Case&);    
    
-
     static int size_pixel_x;
     static int size_pixel_y;
-    void setContains(Displayable d);
-    Displayable getContains();
+  
+    void addContains(Displayable d);
+  
+    std::vector<Displayable> getAllContains();
     bool isEmpty() const;
 
 private:
     
     bool m_empty;
-    Displayable m_displayable;
+   
+public:
+    std::vector<Displayable> listDisplayable;
+   
 
 };
 
@@ -39,7 +44,8 @@ public:
     Case at(int i, int j) const;
 
     void set(int i, int j, Displayable d) const;
-    void set_platform(int i, int j) const;
+    void set_platform(int i, int j, float rotation=0) const;
+    void set_obstacle(int i, int j) const;
 
     int getSize_n() const;
     int getSize_m() const;
@@ -73,7 +79,8 @@ private:
     Player m_player;
    
     std::vector<Platform> list_platform;
-    std::vector<Displayable> list_displayable;
+    //std::vector<Displayable> list_displayable;
+    std::vector<Displayable*> list_displayable;
     Displayable m_Background;
     sf::View m_View;
     bool m_IsFinished;

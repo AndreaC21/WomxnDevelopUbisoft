@@ -12,6 +12,7 @@ m_player(),
 m_level()
 {
      generateLevel();
+     
      buildListPlatform();
 	 m_IsFinished=false;
      
@@ -26,10 +27,17 @@ void GameLevel::Update(float deltaTime)
     for (int i = 0; i < list_displayable.size(); ++i)
     {
        
-        if (m_player.IsColliding(list_displayable[i])) m_player.AdjustPosition(list_displayable[i]);
-        else counter++;
+        if (m_player.IsColliding(*list_displayable[i])) m_player.AdjustPosition(list_displayable[i]);
+        else
+        {
+            counter++;
+        }
     }
-    if ( counter== list_displayable.size()) m_player.setGrounded(false);
+    if (counter == list_displayable.size())
+    {
+        m_player.setGrounded(false);
+        m_player.m_blockLeftRight = false;
+    }
 
     if (!m_IsFinished)
     {
@@ -55,10 +63,11 @@ void GameLevel::Render(sf::RenderTarget& target)
 
     target.draw(m_player);
    
-  
+   
     for (int i = 0; i < list_displayable.size(); ++i)
     {
-        target.draw(list_displayable[i]);
+       
+        target.draw(*list_displayable[i]);
     }
    
     if (m_IsFinished)
@@ -97,27 +106,29 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
 
     if (ImGui::CollapsingHeader("Colliding status"))
     {
-        if (m_player.isGrounded())
+        if (m_player.m_blockLeftRight)
         {
-            ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "PLAYER ON GROUND");
+            ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "PLAYER Block");
         }
         else
         {
-            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "PLAYER NOT ON GROUND");
+            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "PLAYER NOT block");
+        }
+        if (m_player.isGhostMode())
+        {
+            ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "Ghost");
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "Explorator");
         }
        
     }
     if (ImGui::CollapsingHeader("Platform status"))
     {
-       
-        ImGui::Text("collision detected: %d", m_player.index_collision(list_displayable[0]));
-        ImGui::Text("top: %f - top+width: %f",list_displayable[0].GetBoundingBox().top, (list_displayable[0].GetBoundingBox().top+ list_displayable[0].GetBoundingBox().width));
-        ImGui::Text("top+height: %f", list_displayable[0].GetBoundingBox().top+ list_displayable[0].GetBoundingBox().height);
-        ImGui::Text("left: %f", list_displayable[0].GetBoundingBox().left);
-       
-        ImGui::Text("player box top: %f - top+width:%f", m_player.GetBoundingBox().top, m_player.GetBoundingBox().top + m_player.GetBoundingBox().width);
-        ImGui::Text("player box left: %f", m_player.GetBoundingBox().left);
-
+        ImGui::Text("size: %d", (int)list_displayable.size());
+        ImGui::Text("collision: %d", (int)m_player.index_collision(*list_displayable[1]));
+        
     }
    
     ImGui::End();
@@ -128,8 +139,6 @@ void GameLevel::generateLevel()
     m_View.reset(sf::FloatRect(0, 0, 1024, 768));
    
     m_Window.setView(m_View);
-   
-    
    
     //m_p = Platform({ 500,500 }, 1000);
     //m_Background = Displayable({ 0,0 }, "Player\\Idle_1.png");
@@ -146,8 +155,14 @@ void GameLevel::buildListPlatform()
         {
             if (m_level.at(i, j).isEmpty() == false)
             {
-               
-                list_displayable.push_back(m_level.at(i, j).getContains());
+                for (int h = 0; h < m_level.at(i, j).getAllContains().size(); ++h)
+                {
+                    
+                    //list_displayable.push_back(&(m_level.at(i, j).getAllContains()[h]));
+
+                    list_displayable.push_back(new Displayable(m_level.at(i, j).getAllContains()[h]));
+                }
+                
             }
         }
     }
@@ -168,17 +183,27 @@ Case::Case()
 Case::Case(const Case& c)
 {
     m_empty = c.m_empty;
-    m_displayable = c.m_displayable;
+    if (m_empty == false && c.listDisplayable.size()>0)
+    {
+        for (int i = 0; i < c.listDisplayable.size(); ++i)
+        {
+            listDisplayable.push_back(c.listDisplayable[i]);
+        }
+    }
+   
 }
-void Case::setContains(Displayable d)
+
+void Case::addContains(Displayable d)
 {
     this->m_empty = false;
-    this->m_displayable = d;
+    this->listDisplayable.push_back(d);
 }
-Displayable Case::getContains()
+
+std::vector<Displayable> Case::getAllContains()
 {
-    return this->m_displayable;
+    return this->listDisplayable;
 }
+
 bool Case::isEmpty() const
 {
     return this->m_empty;
@@ -234,13 +259,18 @@ Case Level::at(int i, int j) const
 {
     return grid[i][j];
 }
+
 void Level::set(int i, int j, Displayable d) const
 {
-    grid[i][j].setContains(d);
+    grid[i][j].addContains(d);
 }
-void Level::set_platform(int i, int j) const
+void Level::set_platform(int i, int j, float rotation) const
 {
-    grid[i][j].setContains(Platform(i, j, Case::size_pixel_x, Case::size_pixel_y));
+    grid[i][j].addContains(Platform(i, j, Case::size_pixel_x, Case::size_pixel_y,rotation));
+}
+void Level::set_obstacle(int i, int j) const
+{
+    grid[i][j].addContains(Obstacle(i, j, Case::size_pixel_x, Case::size_pixel_y));
 }
 int Level::getSize_n() const
 {
@@ -258,12 +288,21 @@ void Level::genereLevel()
     
     for (int i = 0; i < Level::grid_size; ++i)
     {
-        //this->set_platform(i, 0); // TOP BORDER
-        //this->set_platform(i, Level::grid_size - 1);  //BOTTOM BORDER
+        this->set_platform(i, 0); // TOP BORDER
+        //this->set_platform(i, Level::grid_size-1);  //BOTTOM BORDER
+        //this->set_platform(0, i, 90.0f); // LEFT BORDER
     }
-    this->set_platform(0, 0);
-    //this->set_platform(0, 1);
     
+    
+    this->set_platform(0, 1); //this->set_platform(2, 1);
+   /* this->set_platform(3, 0, 90);
+   
+    this->set_platform(1, 2);
+    this->set_platform(0, 3); this->set_platform(1, 3); this->set_platform(2, 3);
+    this->set_platform(2, 4); this->set_platform(3, 4);
+    */
+    this->set_obstacle(1, 0);
+   
 }
 void Level::path_planning_a_star(Case start, Case target)
 {

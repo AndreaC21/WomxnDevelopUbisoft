@@ -27,21 +27,29 @@ public:
     inline const int index_collision(const BoxCollideable& other) const
     {
         sf::FloatRect box = other.GetBoundingBox();
-        float box_TopRight = box.top + box.width;
-        float box_BottomLeft = box.top + box.height;
-        float box_BottomRight = box.height + box.width;
-        float my_TopRight = m_BoundingBox.top + m_BoundingBox.width;
-        float my_BottomRight = m_BoundingBox.height + m_BoundingBox.width;
-        float my_BottomLeft = m_BoundingBox.height + m_BoundingBox.top;
+       
+        if ( (box.left < m_BoundingBox.left && m_BoundingBox.left < (box.left + box.width)) ||
+            (  box.left < (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) < (box.left + box.width)))
+        {
+            // TOP
+            if (m_BoundingBox.top <= (box.top + box.height) && m_BoundingBox.top > box.top)
+                return 0;
+            // DOWN
+            if ((m_BoundingBox.top + m_BoundingBox.height) >= box.top && (m_BoundingBox.top + m_BoundingBox.height) <= (box.top + box.height) ) 
+                return 1;
+        }
 
-        // up
-        if (m_BoundingBox.top > box_BottomLeft && m_BoundingBox.top < box_BottomRight &&
-            my_TopRight > box_BottomLeft && my_TopRight < box_BottomRight &&
-            m_BoundingBox.top <= box_BottomLeft) return 0;
-        //down
-        if (my_BottomLeft > box.top && my_BottomLeft < box_TopRight &&
-            my_BottomRight > box.top && my_BottomRight < box_TopRight &&
-            my_BottomLeft >= box.top) return 1;
+        if ((box.top < m_BoundingBox.top && m_BoundingBox.top < (box.top + box.height)) ||
+            (box.top < (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) < (box.top + box.height)))
+        {
+            //LEFT
+            if (m_BoundingBox.left < (box.left + box.width) && m_BoundingBox.left > box.left)
+                return 2;
+            //Right
+            if ((m_BoundingBox.left + m_BoundingBox.width ) > box.left  && (m_BoundingBox.left + m_BoundingBox.width) <( box.left + box.height))
+                return 3;
+        }
+
         return -1; 
     }
 

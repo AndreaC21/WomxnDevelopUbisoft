@@ -8,7 +8,7 @@ public:
 	Platform(const Platform&);
 	Platform(sf::Vector2f);
 	//Platform(sf::Vector2f, int w,int r);
-	Platform(int i, int j, int w,int h);
+	Platform(int i, int j, int w,int h,float r=0);
 
 	static float scale;
 

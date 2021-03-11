@@ -10,7 +10,8 @@ Platform::Platform()
 }
 Platform::Platform(const Platform& p) : Displayable(p)
 {
-    m_Sprite.setScale(0.3f, 0.3f);
+    m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
+    m_Sprite.rotate(m_rotation);
 }
 Platform::Platform(sf::Vector2f position) : Displayable(position, "Platform\\2.png",true)
 {
@@ -18,15 +19,16 @@ Platform::Platform(sf::Vector2f position) : Displayable(position, "Platform\\2.p
 
 }
 
-Platform::Platform(int i, int j, int w, int h) : Displayable(sf::Vector2f{(float)i*w,(float)j*h}, "Platform\\2.png", w,scale)
+Platform::Platform(int i, int j, int w, int h, float r) : Displayable(sf::Vector2f{(float)i*w,(float)j*h}, "Platform\\2.png", w,scale)
 {
-    
+    m_rotation = r;
     
     const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
 
    // m_Sprite.setOrigin(size * 0.5f);
-    //m_Sprite.rotate(90);
-    SetBoundingBox(i*w,j*h,w,h*Platform::scale/2);
+    m_Sprite.rotate(r);
+   // SetBoundingBox(i*w,j*h,w,h*Platform::scale/2);
+    SetBoundingBox(m_Sprite.getGlobalBounds());
 }
 void Platform::Update(float deltaTime)
 {
