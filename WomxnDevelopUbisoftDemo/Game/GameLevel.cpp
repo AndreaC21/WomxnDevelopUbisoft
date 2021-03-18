@@ -26,8 +26,10 @@ void GameLevel::Update(float deltaTime)
    
     for (int i = 0; i < list_displayable.size(); ++i)
     {
-       
-        if (m_player.IsColliding(*list_displayable[i])) m_player.AdjustPosition(list_displayable[i]);
+        if (m_player.IsColliding(*list_displayable[i]))
+        {
+          m_player.AdjustPosition(list_displayable[i]);
+        }
         else
         {
             counter++;
@@ -37,6 +39,11 @@ void GameLevel::Update(float deltaTime)
     {
         m_player.setGrounded(false);
         m_player.m_blockLeftRight = false;
+    }
+
+    for (int i = 0; i < m_player.getWeapon().size(); ++i)
+    {
+        m_player.getWeapon()[i].Update(deltaTime);
     }
 
     if (!m_IsFinished)
@@ -62,20 +69,20 @@ void GameLevel::Render(sf::RenderTarget& target)
     target.draw(m_Background);
 
     target.draw(m_player);
-   
-   
+    
     for (int i = 0; i < list_displayable.size(); ++i)
     {
-       
         target.draw(*list_displayable[i]);
+    }
+    for (int i = 0; i < m_player.getWeapon().size(); ++i)
+    {
+        target.draw(m_player.getWeapon()[i]);
     }
    
     if (m_IsFinished)
     {
         
     }
-
-   
 }
 
 void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
@@ -84,12 +91,12 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     ImGui::Text("Press F1 to close this debug menu");
     ImGui::NewLine();
 
-    if (ImGui::CollapsingHeader("Main character position"))
+    if (ImGui::CollapsingHeader("Player Statut"))
     {
-        const auto& mainCharCenterPos = m_player.GetCenter();
-
-        ImGui::Text("X: %f", mainCharCenterPos.x);
-        ImGui::Text("Y: %f", mainCharCenterPos.y);
+        
+        ImGui::Text("X: %f Y: %f", m_player.getPosition().x, m_player.getPosition().y);
+        ImGui::Text("LF: %s", m_player.getLifePoint());
+        ImGui::Text("LF: %f", m_player.getCurrentLifePoint());
     }
 
     if (ImGui::CollapsingHeader("Game status"))
@@ -106,14 +113,7 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
 
     if (ImGui::CollapsingHeader("Colliding status"))
     {
-        if (m_player.m_blockLeftRight)
-        {
-            ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "PLAYER Block");
-        }
-        else
-        {
-            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "PLAYER NOT block");
-        }
+       
         if (m_player.isGhostMode())
         {
             ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "Ghost");
@@ -126,9 +126,26 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     }
     if (ImGui::CollapsingHeader("Platform status"))
     {
-        ImGui::Text("size: %d", (int)list_displayable.size());
-        ImGui::Text("collision: %d", (int)m_player.index_collision(*list_displayable[1]));
-        
+       
+    }
+    if (ImGui::CollapsingHeader("Weapon status"))
+    {
+        ImGui::Text("Number weapon: %d",(int) m_player.getWeapon().size());
+
+        if (m_player.getWeapon().size() > 0)
+        {
+            ImGui::Text("X: %f Y: %f", (int)m_player.getWeapon()[0].getPosition().x, (int)m_player.getWeapon()[0].getPosition().y);
+            
+            if (m_player.getWeapon()[0].Finish()==false)
+            { 
+                ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "Alive");
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "Dead");
+            }
+        }
+      
     }
    
     ImGui::End();
@@ -155,12 +172,10 @@ void GameLevel::buildListPlatform()
         {
             if (m_level.at(i, j).isEmpty() == false)
             {
-                for (int h = 0; h < m_level.at(i, j).getAllContains().size(); ++h)
+                for (int h = 0; h < m_level.getContainsCaseAt(i,j).size(); ++h)
                 {
-                    
-                    //list_displayable.push_back(&(m_level.at(i, j).getAllContains()[h]));
+                    list_displayable.push_back(m_level.getContainsCaseAt(i,j)[h]);
 
-                    list_displayable.push_back(new Displayable(m_level.at(i, j).getAllContains()[h]));
                 }
                 
             }
@@ -183,23 +198,45 @@ Case::Case()
 Case::Case(const Case& c)
 {
     m_empty = c.m_empty;
-    if (m_empty == false && c.listDisplayable.size()>0)
+    if (m_empty == false)
     {
         for (int i = 0; i < c.listDisplayable.size(); ++i)
         {
             listDisplayable.push_back(c.listDisplayable[i]);
         }
+        for (int i = 0; i < c.listObstacle.size(); ++i)
+        {
+            listObstacle.push_back(c.listObstacle[i]);
+        }
+        for (int i = 0; i < c.listPlatform.size(); ++i)
+        {
+            listPlatform.push_back(c.listPlatform[i]);
+        }
     }
    
 }
 
-void Case::addContains(Displayable d)
+void Case::addPlatform(Platform p)
+{
+    this->m_empty = false;
+    this->listPlatform.push_back(p);
+    this->listDisplayable.push_back(&listPlatform[listPlatform.size() - 1]);
+}
+
+void Case::addObstacle(Obstacle o)
+{
+    this->m_empty = false;
+    this->listObstacle.push_back(o);
+    this->listDisplayable.push_back(&listObstacle[listObstacle.size()-1]);
+   
+}
+void Case::addDisplayable(Displayable* d)
 {
     this->m_empty = false;
     this->listDisplayable.push_back(d);
 }
 
-std::vector<Displayable> Case::getAllContains()
+std::vector<Displayable*> Case::getAllContains()
 {
     return this->listDisplayable;
 }
@@ -211,7 +248,9 @@ bool Case::isEmpty() const
 #pragma endregion
 
 #pragma region Level
+
 int Level::grid_size = 8;
+
 Level::Level()
 {
    
@@ -234,7 +273,7 @@ Level::Level(const Level&l)
     for (int i = 0; i < n; ++i)
     {
         grid[i] = new Case[this->m];
-        for (int j = 0; j < n; ++j)
+        for (int j = 0; j < m; ++j)
         {
             this->grid[i][j] = l.at(i, j);
         }
@@ -260,17 +299,18 @@ Case Level::at(int i, int j) const
     return grid[i][j];
 }
 
-void Level::set(int i, int j, Displayable d) const
+Level::~Level()
 {
-    grid[i][j].addContains(d);
+
 }
 void Level::set_platform(int i, int j, float rotation) const
 {
-    grid[i][j].addContains(Platform(i, j, Case::size_pixel_x, Case::size_pixel_y,rotation));
+    grid[i][j].addPlatform( Platform(i, j, Case::size_pixel_x, Case::size_pixel_y,rotation));
+    
 }
-void Level::set_obstacle(int i, int j) const
+void Level::set_obstacle(int i, int j,bool traversable) const
 {
-    grid[i][j].addContains(Obstacle(i, j, Case::size_pixel_x, Case::size_pixel_y));
+    grid[i][j].addObstacle(Obstacle(i, j, Case::size_pixel_x, Case::size_pixel_y,traversable));
 }
 int Level::getSize_n() const
 {
@@ -280,6 +320,12 @@ int Level::getSize_m() const
 {
     return this->m;
 }
+std::vector<Displayable*> Level::getContainsCaseAt(int i, int j) const
+{
+    if (grid[i][j].isEmpty() == false) return  grid[i][j].getAllContains();
+
+    return std::vector<Displayable*>();
+}
 
 void Level::genereLevel()
 {
@@ -288,7 +334,7 @@ void Level::genereLevel()
     
     for (int i = 0; i < Level::grid_size; ++i)
     {
-        this->set_platform(i, 0); // TOP BORDER
+        //this->set_platform(i, 0); // TOP BORDER
         //this->set_platform(i, Level::grid_size-1);  //BOTTOM BORDER
         //this->set_platform(0, i, 90.0f); // LEFT BORDER
     }
@@ -301,13 +347,14 @@ void Level::genereLevel()
     this->set_platform(0, 3); this->set_platform(1, 3); this->set_platform(2, 3);
     this->set_platform(2, 4); this->set_platform(3, 4);
     */
-    this->set_obstacle(1, 0);
+    this->set_obstacle(1, 0,true);
    
 }
 void Level::path_planning_a_star(Case start, Case target)
 {
 
 }
+
 
 #pragma endregion
 

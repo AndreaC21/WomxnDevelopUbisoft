@@ -12,6 +12,8 @@ Player::Player(const Player& p) : Displayable(p)
     m_GhostMode = p.m_GhostMode;
     m_onGround = p.m_onGround;
     m_blockLeftRight = p.m_blockLeftRight;
+    m_lifePoint = p.m_lifePoint;
+    m_attack = p.m_attack;
     SetBoundingBox(m_Sprite.getGlobalBounds());
 }
 Player::Player() : Displayable(sf::Vector2f(500,150), "Player\\Idle_1.png")
@@ -24,6 +26,12 @@ Player::Player() : Displayable(sf::Vector2f(500,150), "Player\\Idle_1.png")
     m_onGround = false;
     m_blockLeftRight = false;
     m_GhostMode = false;
+   
+    m_lifePoint_max = 100.0f;
+    m_lifePoint = m_lifePoint_max;
+    m_attack = 25.0f;
+    m_maxThrowableWeapon = 1;
+    m_currentThrowableWeapon = 0;
   
     //left,top
     SetBoundingBox(m_Position.x,m_Position.y,size.x*m_Sprite_Scale,size.y*m_Sprite_Scale);
@@ -31,7 +39,6 @@ Player::Player() : Displayable(sf::Vector2f(500,150), "Player\\Idle_1.png")
     m_GhostTexture.loadFromFile(".\\Assets\\Ghost\\Idle_1.png");
    
 }
-
 
 void Player::Update(float deltaTime)
 {
@@ -125,30 +132,23 @@ void Player::Update(float deltaTime)
             //m_Velocity.y *= SLOWDOWN_RATE;
         }
     }
-    
-    
 
-    //if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    {
+        if (m_currentThrowableWeapon < m_maxThrowableWeapon)
+        {
+            m_currentThrowableWeapon++;
+         
+            listWeapon.push_back(Weapon(GetCenter(),true,0.0f));
+        }
+       
+    }
     if (Keyboard::isKeyPressed(Keyboard::G))
     {
-        // left mouse button is pressed: shoot
-        if (m_GhostMode == false)
-        {
-            m_GhostMode = true;
-        }
-        else
-            m_GhostMode = false;
+        SwitchMode();
     }
 
-    if (m_GhostMode)
-    {
-        m_Sprite.setTexture(m_GhostTexture);
-    }
-    else
-    {
-        m_Sprite.setTexture(m_Texture);
-    }
-       
     //}
 
     m_Position += m_Velocity * deltaTime;
@@ -157,32 +157,47 @@ void Player::Update(float deltaTime)
     SetCenter(m_Position.x,m_Position.y);
 }
 
-bool cast(Displayable* d)
-{
-    Obstacle* o = static_cast<Obstacle*>(d);
-    if (o == nullptr) return false;
-    
-    return o->canGhostTraverse();
-   
-}
 void Player::AdjustPosition(Displayable* d)
 {
-    if (m_GhostMode && cast(d))
+    if (m_GhostMode && typeid(*d) == typeid(Obstacle))
     {
-        m_blockLeftRight = false;
-        return;
+        Obstacle* o = static_cast <Obstacle*>(d);
+        test_boolean = true;
+        if (o->canGhostTraverse()) return;
+        
     }
+  
     int index_collision = this->index_collision(*d);
 
     switch (index_collision)
     {
         
         case 0: setGrounded(false); m_Velocity.y = 0; break; // up
-        case 1: setGrounded(true); break; // down
+        case 1: setGrounded(true); m_Velocity.y = 0; break; // down
         case 2: m_Velocity.x = 0; m_blockLeftRight = true; break;
         case 3: m_Velocity.x = 0; m_blockLeftRight = true; break;
    
     }
+}
+void Player::SwitchMode()
+{
+    //Not in ghost Mode
+    if (m_GhostMode == false)
+    {
+        m_GhostMode = true;
+        m_Sprite.setTexture(m_GhostTexture);
+        const sf::Vector2f size(static_cast<float>(m_GhostTexture.getSize().x), static_cast<float>(m_GhostTexture.getSize().y));
+        SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
+    }
+    //Already in ghost mode
+    else
+    {
+        m_GhostMode = false;
+        m_Sprite.setTexture(m_Texture);
+        const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
+        SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
+    }
+   
 }
 void Player::StartEndGame()
 {
@@ -200,4 +215,17 @@ void Player::setGrounded(bool b)
 bool Player::isGhostMode()
 {
     return this->m_GhostMode;
+}
+
+std::string Player::getLifePoint() const
+{
+    return std::to_string(m_lifePoint) + "/" + std::to_string(m_lifePoint_max);
+}
+float Player::getCurrentLifePoint() const
+{
+    return this->m_lifePoint;
+}
+std::vector<Weapon> Player::getWeapon() const
+{
+    return this->listWeapon;
 }

@@ -17,9 +17,11 @@ public:
     static int size_pixel_x;
     static int size_pixel_y;
   
-    void addContains(Displayable d);
+    void addPlatform(Platform p);
+    void addObstacle(Obstacle o);
+    void addDisplayable(Displayable* d);
   
-    std::vector<Displayable> getAllContains();
+    std::vector<Displayable*> getAllContains();
     bool isEmpty() const;
 
 private:
@@ -27,7 +29,9 @@ private:
     bool m_empty;
    
 public:
-    std::vector<Displayable> listDisplayable;
+    std::vector<Platform> listPlatform;
+    std::vector<Obstacle> listObstacle;
+    std::vector<Displayable*> listDisplayable;
    
 
 };
@@ -38,6 +42,7 @@ public:
     Level();
     Level(const Level&);
     Level(int i, int j);
+    ~Level();
 
     static int grid_size;
 
@@ -45,7 +50,9 @@ public:
 
     void set(int i, int j, Displayable d) const;
     void set_platform(int i, int j, float rotation=0) const;
-    void set_obstacle(int i, int j) const;
+    void set_obstacle(int i, int j, bool) const;
+
+    std::vector<Displayable*> getContainsCaseAt(int i, int j) const;
 
     int getSize_n() const;
     int getSize_m() const;

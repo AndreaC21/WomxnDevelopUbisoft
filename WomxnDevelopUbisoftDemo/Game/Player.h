@@ -2,6 +2,7 @@
 
 #include "Displayable.h"
 #include "Obstacle.h"
+#include "Weapon.h"
 
 class Player : public Displayable
 {
@@ -16,13 +17,24 @@ public:
 	bool isGrounded() const;
 	bool isGhostMode();
 	void AdjustPosition(Displayable* d);
+	std::string getLifePoint() const;
+	float getCurrentLifePoint() const;
+	std::vector<Weapon> getWeapon() const;
+
 	bool m_blockLeftRight;
 
 private:
 
 	sf::Texture m_GhostTexture;
 	sf::Vector2f m_Velocity;
-	bool m_onGround;
-	bool m_GhostMode;
+	bool m_onGround,m_GhostMode;
+	float m_lifePoint_max, m_lifePoint, m_attack;
+	std::vector<Weapon> listWeapon;
+	int m_currentThrowableWeapon,m_maxThrowableWeapon;
+
+	void SwitchMode();
+
+public:
+	bool test_boolean = false;
 	
 };
