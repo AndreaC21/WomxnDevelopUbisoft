@@ -16,7 +16,7 @@ Player::Player(const Player& p) : Displayable(p)
     m_attack = p.m_attack;
     SetBoundingBox(m_Sprite.getGlobalBounds());
 }
-Player::Player() : Displayable(sf::Vector2f(500,150), "Player\\Idle_1.png")
+Player::Player() : Displayable(sf::Vector2f(100,150), "Player\\Idle_1.png")
 {
     const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
 
@@ -30,8 +30,11 @@ Player::Player() : Displayable(sf::Vector2f(500,150), "Player\\Idle_1.png")
     m_lifePoint_max = 100.0f;
     m_lifePoint = m_lifePoint_max;
     m_attack = 25.0f;
-    m_maxThrowableWeapon = 1;
+    m_maxThrowableWeapon = 5;
     m_currentThrowableWeapon = 0;
+    m_DurationShoot = 0.1f;
+    m_TimePreviousShoot = 0.0f;
+    m_CanShoot = true;
   
     //left,top
     SetBoundingBox(m_Position.x,m_Position.y,size.x*m_Sprite_Scale,size.y*m_Sprite_Scale);
@@ -53,7 +56,7 @@ void Player::Update(float deltaTime)
     const float SLOWDOWN_RATE = 0.9f;
     const float JUMP_MAX = 600.0f;
 
-    
+  
     /*if (m_IsUsingJoystick)
     {
         m_Velocity.x = GetScaledAxis(m_JoystickIndex, Joystick::Axis::X, DEAD_ZONE, SPEED_MAX);
@@ -133,14 +136,15 @@ void Player::Update(float deltaTime)
         }
     }
 
-    
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+   
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_CanShoot && m_GhostMode ==false)
     {
         if (m_currentThrowableWeapon < m_maxThrowableWeapon)
         {
+            m_TimePreviousShoot = clock.asSeconds();
             m_currentThrowableWeapon++;
-         
-            listWeapon.push_back(Weapon(GetCenter(),true,0.0f));
+            m_CanShoot = false;
+            listWeapon.push_back(Weapon(GetCenter(),true, m_TimePreviousShoot));
         }
        
     }
@@ -149,7 +153,22 @@ void Player::Update(float deltaTime)
         SwitchMode();
     }
 
-    //}
+    for (int i = 0; i < (int)listWeapon.size(); ++i)
+    {
+        listWeapon[i].Update(deltaTime);
+        if (listWeapon[i].Finish())
+        {
+            listWeapon.erase(std::find(listWeapon.begin(), listWeapon.end(), listWeapon[i]));
+            m_currentThrowableWeapon--;
+        }
+    }
+
+   /* for (auto w : listWeapon)
+    {
+        w.Update(deltaTime);
+        if (w.Finish()) listWeapon.erase(std::find(listWeapon.begin(),listWeapon.end(),w));
+    }*/
+
 
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
@@ -199,6 +218,19 @@ void Player::SwitchMode()
     }
    
 }
+void Player::UpdateShoot(sf::Time currentTime)
+{
+    clock = currentTime;
+    if (currentTime.asSeconds() > this->m_TimePreviousShoot + this->m_DurationShoot)
+    {
+       m_CanShoot = true;
+    }
+    else
+    {
+        m_CanShoot = false;
+    }
+}
+
 void Player::StartEndGame()
 {
 	m_IsPlayingEndGame = true;

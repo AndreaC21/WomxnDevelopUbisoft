@@ -1,6 +1,7 @@
 #include <stdafx.h>
 #include "GameLevel.h"
 
+bool b = false;
 #pragma region GameLevel
 
 int GameLevel::max_size_y = Level::grid_size * Case::size_pixel_y;
@@ -11,18 +12,20 @@ m_Background({ 0,0 }, "Background.png",3.5f),
 m_player(),
 m_level()
 {
-     generateLevel();
-     
-     buildListPlatform();
-	 m_IsFinished=false;
+    generateLevel();
+
+    buildListPlatform();
+    m_IsFinished = false;
+    m_clock.restart();
+
+    //m_listEnnemy.push_back(Ennemy(sf::Vector2f{ 400, 150 }, &m_player));
      
 }
 
 void GameLevel::Update(float deltaTime)
 {
-    m_player.Update(deltaTime);
+    m_player.UpdateShoot(m_clock.getElapsedTime());
     int counter = 0;
-    
    
     for (int i = 0; i < list_displayable.size(); ++i)
     {
@@ -34,18 +37,34 @@ void GameLevel::Update(float deltaTime)
         {
             counter++;
         }
+        for (int j = 0; j < m_player.getWeapon().size(); ++j)
+        {
+            if (m_player.getWeapon()[j].IsColliding(*list_displayable[i]))
+            {
+               b = m_player.getWeapon()[j].TouchDisplayable(list_displayable[i]);
+            }
+        }
     }
+    m_player.Update(deltaTime);
+
+    for (auto& e : m_listEnnemy)
+    {
+        e.Update(deltaTime);
+    }
+    /*
+    for (int i = 0; i < m_player.getWeapon().size(); ++i)
+    {
+        m_player.getWeapon()[i].Update(deltaTime);
+    }
+    */
+  
     if (counter == list_displayable.size())
     {
         m_player.setGrounded(false);
         m_player.m_blockLeftRight = false;
     }
 
-    for (int i = 0; i < m_player.getWeapon().size(); ++i)
-    {
-        m_player.getWeapon()[i].Update(deltaTime);
-    }
-
+   
     if (!m_IsFinished)
     {
         //if (m_Door.IsColliding(m_MainCharacter))
@@ -79,6 +98,10 @@ void GameLevel::Render(sf::RenderTarget& target)
         target.draw(m_player.getWeapon()[i]);
     }
    
+    for (int i = 0; i < m_listEnnemy.size(); ++i)
+    {
+        target.draw(m_listEnnemy[i]);
+    }
     if (m_IsFinished)
     {
         
@@ -95,22 +118,11 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     {
         
         ImGui::Text("X: %f Y: %f", m_player.getPosition().x, m_player.getPosition().y);
-        ImGui::Text("LF: %s", m_player.getLifePoint());
+        ImGui::Text("LF: %s", m_player.getLifePoint().c_str());
         ImGui::Text("LF: %f", m_player.getCurrentLifePoint());
     }
 
-    if (ImGui::CollapsingHeader("Game status"))
-    {
-        if (m_IsFinished)
-        {
-            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "GAME ENDED");
-        }
-        else
-        {
-            ImGui::TextColored(ImVec4(0.f, 255.0f, 0.f, 1.f), "GAME IN PROGRESS");
-        }
-    }
-
+ 
     if (ImGui::CollapsingHeader("Colliding status"))
     {
        
@@ -124,28 +136,37 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
         }
        
     }
-    if (ImGui::CollapsingHeader("Platform status"))
-    {
-       
-    }
+   
     if (ImGui::CollapsingHeader("Weapon status"))
     {
         ImGui::Text("Number weapon: %d",(int) m_player.getWeapon().size());
 
-        if (m_player.getWeapon().size() > 0)
+        ImGui::Text("Time: %f", m_clock.getElapsedTime().asSeconds());
+        if (m_player.m_CanShoot == true)
         {
-            ImGui::Text("X: %f Y: %f", (int)m_player.getWeapon()[0].getPosition().x, (int)m_player.getWeapon()[0].getPosition().y);
-            
-            if (m_player.getWeapon()[0].Finish()==false)
-            { 
-                ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "Alive");
-            }
-            else
-            {
-                ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "Dead");
-            }
+            ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "can shoot");
         }
-      
+        else
+        {
+            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "not shoot");
+        }
+        if (b== true)
+       
+        for (int j = 0; j < m_player.getWeapon().size(); ++j)
+        {
+            ImGui::Text("Collide: %d", m_player.getWeapon()[j].IsColliding(*list_displayable[1]));
+            ImGui::Text("test bool: %d", m_player.getWeapon()[j].test_bool);
+            ImGui::Text("Destroy: %d", m_player.getWeapon()[j].m_ToDestroy);
+            ImGui::Text("b: %d", b);
+           
+        }
+       
+    }
+    if (ImGui::CollapsingHeader("Ennemy status"))
+    {
+        ImGui::Text("Number ennemy: %d", (int)m_listEnnemy.size());
+       /// ImGui::Text("PV: %f", m_listEnnemy[0].getCurrentLifePoint());
+       
     }
    
     ImGui::End();
@@ -166,6 +187,7 @@ void GameLevel::generatePlatform()
 }
 void GameLevel::buildListPlatform()
 {
+    // GET ALL PLATFORM AND OBSTACLE FROM THE GRID 
     for (int i = 0; i < m_level.getSize_n() ;++i)
     {
         for (int j = 0; j < m_level.getSize_n(); ++j)
@@ -175,13 +197,11 @@ void GameLevel::buildListPlatform()
                 for (int h = 0; h < m_level.getContainsCaseAt(i,j).size(); ++h)
                 {
                     list_displayable.push_back(m_level.getContainsCaseAt(i,j)[h]);
-
                 }
                 
             }
         }
     }
-
 }
 
 #pragma endregion

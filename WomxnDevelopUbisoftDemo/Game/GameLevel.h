@@ -5,8 +5,7 @@
 #include <Game/MainCharacter.h>
 #include <Game/Platform.h>
 #include <Game/Obstacle.h>
-
-
+#include <Ennemy.h>
 
 class Case
 {
@@ -84,13 +83,14 @@ private:
 
     static int max_size_x, max_size_y;
     Player m_player;
+    std::vector<Ennemy> m_listEnnemy;
    
     std::vector<Platform> list_platform;
-    //std::vector<Displayable> list_displayable;
     std::vector<Displayable*> list_displayable;
     Displayable m_Background;
     sf::View m_View;
     bool m_IsFinished;
     Level m_level;
+    sf::Clock m_clock;
 
 };

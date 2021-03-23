@@ -21,18 +21,23 @@ public:
 	float getCurrentLifePoint() const;
 	std::vector<Weapon> getWeapon() const;
 
-	bool m_blockLeftRight;
+	bool m_blockLeftRight,m_CanShoot;
+	
+	void UpdateShoot(sf::Time t);
 
 private:
 
 	sf::Texture m_GhostTexture;
 	sf::Vector2f m_Velocity;
-	bool m_onGround,m_GhostMode;
-	float m_lifePoint_max, m_lifePoint, m_attack;
+	bool m_onGround, m_GhostMode;
+	float m_lifePoint_max, m_lifePoint, m_attack,m_TimePreviousShoot,m_DurationShoot;
 	std::vector<Weapon> listWeapon;
 	int m_currentThrowableWeapon,m_maxThrowableWeapon;
 
+	sf::Time clock;
+
 	void SwitchMode();
+	
 
 public:
 	bool test_boolean = false;
