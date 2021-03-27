@@ -5,7 +5,7 @@
 #include <Game/MainCharacter.h>
 #include <Game/Platform.h>
 #include <Game/Obstacle.h>
-#include <Ennemy.h>
+#include <Game/Ennemy.h>
 
 class Case
 {
@@ -55,6 +55,8 @@ public:
 
     int getSize_n() const;
     int getSize_m() const;
+
+    std::vector<Platform*> getColumnsPlatform(int i);
    
    
 
@@ -76,13 +78,15 @@ public:
 
     void generateLevel();
     void generatePlatform();
+    void generateEnnemy();
 
 private:
 
     void buildListPlatform();
 
     static int max_size_x, max_size_y;
-    Player m_player;
+  //  Player m_player;
+    Player m_Player;
     std::vector<Ennemy> m_listEnnemy;
    
     std::vector<Platform> list_platform;

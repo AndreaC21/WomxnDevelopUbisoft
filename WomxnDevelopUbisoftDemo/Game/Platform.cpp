@@ -16,3 +16,4 @@ void Platform::Update(float deltaTime)
     //m_Sprite.setPosition(m_Position);
     //SetCenter(m_Position);
 }
+

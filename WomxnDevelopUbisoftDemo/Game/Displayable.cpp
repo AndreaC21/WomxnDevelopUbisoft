@@ -49,7 +49,7 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int wid
 	m_Texture.setRepeated(true);
 	m_Sprite.setTexture(m_Texture);
 	m_Sprite.setScale(scale, scale);
-	m_Sprite.setTextureRect(sf::IntRect(0, 0, width/scale, m_Texture.getSize().x));
+	m_Sprite.setTextureRect(sf::IntRect(0, 0, static_cast<int>(width / scale), m_Texture.getSize().x));
 	
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
 	
@@ -68,7 +68,7 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int wid
 	m_Texture.setRepeated(true);
 	m_Sprite.setTexture(m_Texture);
 	m_Sprite.setScale(scale, scale);
-	m_Sprite.setTextureRect(sf::IntRect(0, 0, width / scale, height / scale));
+	m_Sprite.setTextureRect(sf::IntRect(0, 0, static_cast<int>(width / scale), static_cast<int>(height / scale)));
 
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
 

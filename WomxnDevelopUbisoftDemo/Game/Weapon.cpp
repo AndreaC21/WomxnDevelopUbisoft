@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "Weapon.h"
-#include <Game/Obstacle.h>
-#include <Game/Platform.h>
-#include <Ennemy.h>
+
 
 Weapon::Weapon()
 {
@@ -67,13 +65,20 @@ void Weapon::Update(float deltaTime)
 
 bool Weapon::TouchDisplayable(Displayable* d)
 {
-    test_bool = true;
-    return true;
-    /*if ( typeid(*d) == typeid(Obstacle) || typeid(*d) == typeid(Platform))
+    this->test_bool = true;
+    
+    if ( typeid(*d) == typeid(Obstacle) || typeid(*d) == typeid(Platform))
     {
-        m_ToDestroy = true;
-    }*/
-  
+       m_ToDestroy = true;
+    }
+    return true;
+}
+
+bool Weapon::TouchEnnemy(Ennemy& e)
+{
+    m_ToDestroy = true;
+    e.lostLifePoint(this->m_force);
+    return true;
 }
    
 void Weapon::StartEndGame()

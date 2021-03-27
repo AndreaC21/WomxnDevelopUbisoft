@@ -1,5 +1,9 @@
 #pragma once
 #include "Displayable.h"
+#include <Game/Obstacle.h>
+#include <Game/Platform.h>
+#include <Game/Ennemy.h>
+
 class Weapon : public Displayable
 {
 public:
@@ -12,6 +16,7 @@ public:
 
 	bool Finish();
 	bool TouchDisplayable(Displayable* d);
+	bool TouchEnnemy(Ennemy& e);
 
 	bool test_bool;
 

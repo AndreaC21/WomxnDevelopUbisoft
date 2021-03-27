@@ -3,43 +3,87 @@
 #include "Displayable.h"
 #include "Obstacle.h"
 #include "Weapon.h"
+#include "Ennemy.h"
+
 
 class Player : public Displayable
 {
 public:
 	Player();
+	Player(sf::Vector2f, const char* s);
 	Player(const Player&);
 
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
 
-	void setGrounded(bool d);
-	bool isGrounded() const;
+	void NoCollisionDetected();
 	bool isGhostMode();
-	void AdjustPosition(Displayable* d);
-	std::string getLifePoint() const;
-	float getCurrentLifePoint() const;
-	std::vector<Weapon> getWeapon() const;
+	void Switch();
+	virtual int AdjustPosition(Displayable* d);
 
-	bool m_blockLeftRight,m_CanShoot;
+	Player* ptr;
+	bool* m_BlockDirection;
 	
-	void UpdateShoot(sf::Time t);
+protected:
 
-private:
-
-	sf::Texture m_GhostTexture;
 	sf::Vector2f m_Velocity;
-	bool m_onGround, m_GhostMode;
-	float m_lifePoint_max, m_lifePoint, m_attack,m_TimePreviousShoot,m_DurationShoot;
-	std::vector<Weapon> listWeapon;
-	int m_currentThrowableWeapon,m_maxThrowableWeapon;
+	
+	bool m_GhostMode;
 
 	sf::Time clock;
 
 	void SwitchMode();
 	
+	
 
 public:
 	bool test_boolean = false;
 	
+};
+
+class Ghost : public Player
+{
+public:
+
+	Ghost(sf::Vector2f);
+	Ghost(const Ghost&);
+
+	virtual void Update(float deltaTime);
+	virtual int AdjustPosition(Displayable* d);
+
+private:
+	float m_Duration;
+};
+
+class Explorator : public Player
+{
+public:
+
+	Explorator(sf::Vector2f);
+	Explorator(const Explorator&);
+
+	virtual void Update(float deltaTime);
+	void UpdateWeapon(Displayable* d);
+	void UpdateWeapon(Ennemy e);
+	virtual int AdjustPosition(Displayable* d);
+
+	std::vector<Weapon> getWeapon() const;
+	void UpdateShoot(sf::Time t);
+	bool WeaponTouch(int index_weapon, Displayable* d);
+	bool WeaponTouch(int index_weapon, Ennemy& e);
+	void setGrounded(bool d);
+	bool isGrounded() const;
+	std::string getLifePoint() const;
+	float getCurrentLifePoint() const;
+
+
+
+
+
+private:
+	bool m_onGround, m_blockLeftRight, m_CanShoot;
+	float m_lifePoint_max, m_lifePoint, m_attack, m_TimePreviousShoot, m_DurationShoot;
+	std::vector<Weapon> m_listWeapon;
+	int m_currentThrowableWeapon, m_maxThrowableWeapon;
+
 };
