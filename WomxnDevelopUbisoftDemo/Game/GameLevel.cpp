@@ -32,7 +32,7 @@ void GameLevel::Update(float deltaTime)
    
     for (int i = 0; i < list_displayable.size(); ++i)
     {
-        if (m_Player.ptr->IsColliding(*list_displayable[i]))
+        if (m_Player.getCurrentState()->IsColliding(*list_displayable[i]))
         {
           m_Player.AdjustPosition(list_displayable[i]);
         }
@@ -43,14 +43,14 @@ void GameLevel::Update(float deltaTime)
         
         if (m_Player.isGhostMode()==false)
         {
-            Explorator* o = static_cast <Explorator*>(m_Player.ptr);
+            Explorator* o = static_cast <Explorator*>(m_Player.getCurrentState());
             o->UpdateWeapon(list_displayable[i]);
         }
        
     }
     if (m_Player.isGhostMode() == false)
     {
-        Explorator* o = static_cast <Explorator*>(m_Player.ptr);
+        Explorator* o = static_cast <Explorator*>(m_Player.getCurrentState());
         o->UpdateShoot(m_clock.getElapsedTime());
     }
     
@@ -61,10 +61,10 @@ void GameLevel::Update(float deltaTime)
         m_listEnnemy[i].Update(deltaTime);
         if (m_Player.isGhostMode() == false)
         {
-            Explorator* o = static_cast <Explorator*>(m_Player.ptr);
+            Explorator* o = static_cast <Explorator*>(m_Player.getCurrentState());
             o->UpdateWeapon(m_listEnnemy[i]);
         }
-      
+         
         if (m_listEnnemy[i].isGrounded() == false)
         {
             m_listEnnemy[i].Fall();
@@ -75,7 +75,7 @@ void GameLevel::Update(float deltaTime)
                 {
                     m_listEnnemy[i].StopFall();
                 }
-            }
+            } 
         }
         if (m_listEnnemy[i].Dead())
         {
@@ -84,18 +84,10 @@ void GameLevel::Update(float deltaTime)
         }
         
     }
-    /*
-    for (int i = 0; i < m_player.getWeapon().size(); ++i)
-    {
-        m_player.getWeapon()[i].Update(deltaTime);
-    }
-    */
-  
     if (counter == list_displayable.size())
     {
         m_Player.NoCollisionDetected();
         //m_player.setGrounded(false);
-       // m_player.m_blockLeftRight = false;
     }
 
    
@@ -122,7 +114,7 @@ void GameLevel::Render(sf::RenderTarget& target)
     target.draw(m_Background);
 
    // target.draw(m_player);
-    target.draw(*m_Player.ptr);
+    target.draw(*m_Player.getCurrentState());
     
     for (int i = 0; i < list_displayable.size(); ++i)
     {
@@ -130,7 +122,7 @@ void GameLevel::Render(sf::RenderTarget& target)
     }
     if (m_Player.isGhostMode() == false)
     {
-        Explorator* e = static_cast <Explorator*>(m_Player.ptr);
+        Explorator* e = static_cast <Explorator*>(m_Player.getCurrentState());
 
         for (int i = 0; i < e->getWeapon().size(); ++i)
         {
@@ -166,27 +158,31 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
         {
             ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "Explorator");
         }
-        ImGui::Text("type: %s", typeid(*m_Player.ptr).name());
-       // ImGui::Text("LF: %s", m_player.getLifePoint().c_str());
+        ImGui::Text("type: %s", typeid(*m_Player.getCurrentState()).name());
+        if (typeid(*m_Player.getCurrentState()) == typeid(Explorator))
+        {
+            Explorator* e = static_cast<Explorator*>(m_Player.getCurrentState());
+            //e->loseLifePoint(1);
+            ImGui::Text("LF: %s", e->getLifePoint().c_str());
+        }
+#
+
+        
        // ImGui::Text("LF: %f", m_player.getCurrentLifePoint());
     }
 
  
     if (ImGui::CollapsingHeader("Colliding status"))
     {
-        ImGui::Text("index collision: %d ", m_Player.AdjustPosition(list_displayable[1]));
-
-        ImGui::Text("up:%d down:%d left:%d right:%d", m_Player.ptr->m_BlockDirection[0], m_Player.ptr->m_BlockDirection[1], m_Player.ptr->m_BlockDirection[2], m_Player.ptr->m_BlockDirection[3]);
-       
-       
+        
     }
    
   
     if (ImGui::CollapsingHeader("Weapon status"))
     {
-        if (typeid(*m_Player.ptr) == typeid(Explorator))
+        if (typeid(*m_Player.getCurrentState()) == typeid(Explorator))
         {
-            Explorator* e = static_cast <Explorator*>(m_Player.ptr);
+            Explorator* e = static_cast <Explorator*>(m_Player.getCurrentState());
             ImGui::Text("Number weapon: %d", (int)e->getWeapon().size());
             
         }
@@ -195,12 +191,20 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     if (ImGui::CollapsingHeader("Ennemy status"))
     {
         ImGui::Text("Number ennemy: %d", (int)m_listEnnemy.size());
-        ImGui::Text("PV: %f", m_listEnnemy[0].getCurrentLifePoint());
-        ImGui::Text("X: %f Y: %f", m_listEnnemy[0].getPosition().x, m_listEnnemy[0].getPosition().y);
-       
-       
+        if (m_listEnnemy.size() > 0)
+        {
+            ImGui::Text("PV: %f", m_listEnnemy[0].getCurrentLifePoint());
+            ImGui::Text("X: %f Y: %f", m_listEnnemy[0].getPosition().x, m_listEnnemy[0].getPosition().y);
+            Displayable* o = &m_Player; 
+           
+           // ImGui::Text("X Player: %f", o->getPosition().x);
+            ImGui::Text("SeePlayer: %d", m_listEnnemy[0].SeePlayer());
+            if (m_listEnnemy[0].IsColliding(m_Player))
+            {
+
+            }
+        }
     }
-   
     ImGui::End();
 }
 
@@ -219,7 +223,7 @@ void GameLevel::generatePlatform()
 }
 void GameLevel::generateEnnemy()
 {
-    m_listEnnemy.push_back(Ennemy(0,0, Case::size_pixel_x, Case::size_pixel_y));
+    m_listEnnemy.push_back(Ennemy(0,0, Case::size_pixel_x, Case::size_pixel_y,&m_Player));
 
 }
 void GameLevel::buildListPlatform()
@@ -240,7 +244,12 @@ void GameLevel::buildListPlatform()
         }
     }
 }
-
+/*
+Player* GameLevel::getPlayer()
+{
+    return &m_Player;
+}
+*/
 #pragma endregion
 
 #pragma region Case
@@ -269,6 +278,7 @@ Case::Case(const Case& c)
         {
             listPlatform.push_back(c.listPlatform[i]);
         }
+        this->portal = c.portal;
     }
    
 }
@@ -287,12 +297,17 @@ void Case::addObstacle(Obstacle o)
     this->listDisplayable.push_back(&listObstacle[listObstacle.size()-1]);
    
 }
+void Case::addPortal(Portal p)
+{
+    this->m_empty = false;
+    this->portal = p;
+    this->listDisplayable.push_back(&this->portal);
+}
 void Case::addDisplayable(Displayable* d)
 {
     this->m_empty = false;
     this->listDisplayable.push_back(d);
 }
-
 std::vector<Displayable*> Case::getAllContains()
 {
     return this->listDisplayable;
@@ -373,6 +388,10 @@ void Level::set_obstacle(int i, int j,bool traversable) const
 {
     grid[i][j].addObstacle(Obstacle(i, j, Case::size_pixel_x, Case::size_pixel_y,traversable));
 }
+void Level::SetPortal(int i, int j) const
+{
+    grid[i][j].addPortal(Portal(i, j, Case::size_pixel_x, Case::size_pixel_y));
+}
 int Level::getSize_n() const
 {
     return this->n;
@@ -431,6 +450,7 @@ void Level::genereLevel()
     this->set_platform(2, 4); this->set_platform(3, 4);
     */
     this->set_obstacle(1, 0,true);
+    this->SetPortal(0, 1);
    
 }
 void Level::path_planning_a_star(Case start, Case target)

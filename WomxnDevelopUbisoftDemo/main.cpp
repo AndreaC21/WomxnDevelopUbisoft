@@ -7,7 +7,7 @@ int main()
 {
     //GameDemo game{};
 
-    GameLevel game;
+    static GameLevel game;
     game.RunGameLoop();
 
 

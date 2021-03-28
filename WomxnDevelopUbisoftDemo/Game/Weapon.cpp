@@ -16,7 +16,6 @@ Weapon::Weapon(const Weapon& w) : Displayable(w)
     m_ToDestroy = w.m_ToDestroy;
     m_TimeStart = w.m_TimeStart;
     m_TimeEnd = w.m_TimeEnd;
-    test_bool = false;
 
     m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
 }
@@ -34,7 +33,6 @@ Weapon::Weapon(sf::Vector2f position, bool direction, float timeStart) : Display
 
     clock.restart();
 
-    test_bool = false;
 }
 
 void Weapon::Update(float deltaTime)

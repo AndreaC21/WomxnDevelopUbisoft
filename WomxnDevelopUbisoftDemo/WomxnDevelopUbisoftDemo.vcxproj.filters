@@ -57,6 +57,7 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Game\Ennemy.cpp" />
+    <ClCompile Include="Game\Portal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -107,6 +108,7 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\Ennemy.h" />
+    <ClInclude Include="Game\Portal.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

@@ -1,7 +1,5 @@
 #include <stdafx.h>
 #include <Game/Player.h>
-#include <typeinfo>
-#include "Ennemy.h"
 
 using namespace sf;
 
@@ -11,7 +9,9 @@ Player::Player(const Player& p) : Displayable(p)
     m_Velocity = p.m_Velocity;
     m_Sprite.setScale(0.3f, 0.3f);
     m_GhostMode = p.m_GhostMode;
-    ptr = p.ptr;
+    m_BlockDirection = p.m_BlockDirection;
+    this->m_CurrentState = p.m_CurrentState;
+    m_Position = p.m_Position;
    
     SetBoundingBox(m_Sprite.getGlobalBounds());
 }
@@ -26,7 +26,7 @@ Player::Player() : Displayable(sf::Vector2f(100,150), "Player\\Idle_1.png")
     //left,top
     SetBoundingBox(m_Position.x,m_Position.y,size.x*m_Sprite_Scale,size.y*m_Sprite_Scale);
 
-    ptr = new Explorator(m_Position);
+    this->m_CurrentState = new Explorator(m_Position);
 
   
 }
@@ -48,14 +48,14 @@ void Player::Update(float deltaTime)
         return;
     }
 
-    ptr->Update(deltaTime);
+    this->m_CurrentState->Update(deltaTime);
 
     if (Keyboard::isKeyPressed(Keyboard::G))
     {
         Switch();
     }
 
-    m_Position = ptr->getPosition();
+    m_Position = this->m_CurrentState->getPosition();
   
     /*if (m_IsUsingJoystick)
     {
@@ -85,33 +85,33 @@ void Player::Update(float deltaTime)
 
 int Player::AdjustPosition(Displayable* d)
 {
-   return ptr->AdjustPosition(d);
+   return this->m_CurrentState->AdjustPosition(d);
   
 }
 void Player::NoCollisionDetected()
 {
-    ptr->m_BlockDirection[0] = false;
-    ptr->m_BlockDirection[1] = false;
-    ptr->m_BlockDirection[2] = false;
-    ptr->m_BlockDirection[3] = false;
+    this->m_CurrentState->m_BlockDirection[0] = false;
+    this->m_CurrentState->m_BlockDirection[1] = false;
+    this->m_CurrentState->m_BlockDirection[2] = false;
+    this->m_CurrentState->m_BlockDirection[3] = false;
 }
 void Player::SwitchMode()
 {
 }
 void Player::Switch()
 {
-    if (typeid(*ptr) == typeid(Explorator))
+    if (typeid(*this->m_CurrentState) == typeid(Explorator))
     {
         //  m_GhostMode = true;
-        ptr = new Ghost(m_Position);
+        this->m_CurrentState = new Ghost(m_Position);
     }
     else
     {
         //m_GhostMode = false;
-        ptr = new Explorator(m_Position);
+        this->m_CurrentState = new Explorator(m_Position);
     }
 
-    m_Texture = ptr->m_Texture;
+    m_Texture = this->m_CurrentState->m_Texture;
     m_Sprite.setTexture(m_Texture);
     const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
     SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
@@ -126,7 +126,11 @@ void Player::StartEndGame()
 
 bool Player::isGhostMode()
 {
-    return  (typeid(*ptr) == typeid(Ghost));
+    return  (typeid(*this->m_CurrentState) == typeid(Ghost));
+}
+Player* Player::getCurrentState()
+{
+    return this->m_CurrentState;
 }
 #pragma endregion
 
@@ -139,7 +143,7 @@ Ghost::Ghost(sf::Vector2f p) : Player(p, "Ghost\\Idle_1.png")
 }
 Ghost::Ghost(const Ghost& g) : Player(g)
 {
-
+    m_Duration = g.m_Duration;
 }
 
 void Ghost::Update(float deltaTime)
@@ -151,14 +155,10 @@ void Ghost::Update(float deltaTime)
     if (Keyboard::isKeyPressed(Keyboard::Right) && m_BlockDirection[3] == false)
     {
         m_Velocity.x = fmin(m_Velocity.x + SPEED_INC, SPEED_MAX);
-        // m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
-         //m_Sprite.setOrigin(0, 0);
     }
     else if (Keyboard::isKeyPressed(Keyboard::Left) && m_BlockDirection[2] == false)
     {
         m_Velocity.x = fmax(m_Velocity.x - SPEED_INC, -SPEED_MAX);
-        // m_Sprite.setScale(-m_Sprite_Scale, m_Sprite_Scale);
-        // m_Sprite.setOrigin(0, 0);
     }
     else
     {
@@ -182,7 +182,6 @@ void Ghost::Update(float deltaTime)
 
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
-    //SetBoundingBox(m_Sprite.getGlobalBounds());
     SetCenter(m_Position.x, m_Position.y);
 }
 
@@ -220,8 +219,7 @@ int Ghost::AdjustPosition(Displayable* d)
 Explorator::Explorator(sf::Vector2f p) : Player(p, "Player\\Idle_1.png")
 {
     m_onGround = false;
-    m_blockLeftRight = false;
-   
+    
     m_lifePoint_max = 100.0f;
     m_lifePoint = m_lifePoint_max;
     m_attack = 25.0f;
@@ -235,8 +233,9 @@ Explorator::Explorator(sf::Vector2f p) : Player(p, "Player\\Idle_1.png")
 Explorator::Explorator(const Explorator& p) : Player(p)
 {
     m_onGround = p.m_onGround;
-    m_blockLeftRight = p.m_blockLeftRight;
+   
     m_lifePoint = p.m_lifePoint;
+    m_lifePoint_max = p.m_lifePoint_max;
     m_attack = p.m_attack;
 }
 void Explorator::Update(float deltaTime)
@@ -249,14 +248,10 @@ void Explorator::Update(float deltaTime)
     if (Keyboard::isKeyPressed(Keyboard::Right)&& m_BlockDirection[3]==false)
     {
         m_Velocity.x = fmin(m_Velocity.x + SPEED_INC, SPEED_MAX);
-        // m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
-         //m_Sprite.setOrigin(0, 0);
     }
     else if (Keyboard::isKeyPressed(Keyboard::Left) &&m_BlockDirection[2]==false)
     {
         m_Velocity.x = fmax(m_Velocity.x - SPEED_INC, -SPEED_MAX);
-        // m_Sprite.setScale(-m_Sprite_Scale, m_Sprite_Scale);
-        // m_Sprite.setOrigin(0, 0);
     }
     else
     {
@@ -264,7 +259,7 @@ void Explorator::Update(float deltaTime)
     }
     if (Keyboard::isKeyPressed(Keyboard::Space) && m_onGround)
     {
-        m_Velocity.y = -JUMP_MAX;// fmax(m_Velocity.y - SPEED_INC, -SPEED_MAX);
+        m_Velocity.y = -JUMP_MAX;
         m_onGround = false;
     }
 
@@ -287,7 +282,6 @@ void Explorator::Update(float deltaTime)
             m_CanShoot = false;
             m_listWeapon.push_back(Weapon(GetCenter(), true, m_TimePreviousShoot));
         }
-
     }
 
     for (int i = 0; i < (int)m_listWeapon.size(); ++i)
@@ -302,7 +296,7 @@ void Explorator::Update(float deltaTime)
   
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
-    //SetBoundingBox(m_Sprite.getGlobalBounds());
+  
     SetCenter(m_Position.x, m_Position.y);
 }
 void Explorator::UpdateWeapon(Displayable* d)
@@ -315,7 +309,7 @@ void Explorator::UpdateWeapon(Displayable* d)
         }
     }
 }
-void Explorator::UpdateWeapon(Ennemy e)
+void Explorator::UpdateWeapon(Ennemy& e)
 {
     for (int j = 0; j < m_listWeapon.size(); ++j)
     {
@@ -355,6 +349,10 @@ std::string Explorator::getLifePoint() const
 float Explorator::getCurrentLifePoint() const
 {
     return this->m_lifePoint;
+}
+void Explorator::loseLifePoint(float amount)
+{
+    this->m_lifePoint -= amount;
 }
 std::vector<Weapon> Explorator::getWeapon() const
 {

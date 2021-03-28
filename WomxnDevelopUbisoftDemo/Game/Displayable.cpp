@@ -1,6 +1,5 @@
 #include <stdafx.h>
 #include "Game/Displayable.h"
-#include <iostream>
 
 using namespace sf;
 

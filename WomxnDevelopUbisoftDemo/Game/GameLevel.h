@@ -6,6 +6,7 @@
 #include <Game/Platform.h>
 #include <Game/Obstacle.h>
 #include <Game/Ennemy.h>
+#include <Game/Portal.h>
 
 class Case
 {
@@ -16,6 +17,7 @@ public:
     static int size_pixel_x;
     static int size_pixel_y;
   
+    void addPortal(Portal );
     void addPlatform(Platform p);
     void addObstacle(Obstacle o);
     void addDisplayable(Displayable* d);
@@ -26,8 +28,7 @@ public:
 private:
     
     bool m_empty;
-   
-public:
+    Portal portal;
     std::vector<Platform> listPlatform;
     std::vector<Obstacle> listObstacle;
     std::vector<Displayable*> listDisplayable;
@@ -50,6 +51,7 @@ public:
     void set(int i, int j, Displayable d) const;
     void set_platform(int i, int j, float rotation=0) const;
     void set_obstacle(int i, int j, bool) const;
+    void SetPortal(int i, int j) const;
 
     std::vector<Displayable*> getContainsCaseAt(int i, int j) const;
 
@@ -80,12 +82,13 @@ public:
     void generatePlatform();
     void generateEnnemy();
 
+    //static Player* getPlayer();
+
 private:
 
     void buildListPlatform();
 
     static int max_size_x, max_size_y;
-  //  Player m_player;
     Player m_Player;
     std::vector<Ennemy> m_listEnnemy;
    
