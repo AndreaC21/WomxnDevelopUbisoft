@@ -25,6 +25,7 @@ public:
 	void StopFall();
 
 	int getSpawnedColumns() const;
+	int getSpawnedRow() const;
 
 	Displayable* m_ptr_Player;
 	
@@ -34,7 +35,7 @@ private:
 	bool m_Direction, m_ToDestroy, m_OnGround;
 	float m_DurationAttack,m_TimePreviousAttack;
 	float m_lifePoint_max, m_lifePoint, m_attack,m_radius,m_RadiusDetection;
-	int m_Column;
+	int m_Column,m_Row;
 	sf::Clock clock;
 
 	void AttackPlayer();

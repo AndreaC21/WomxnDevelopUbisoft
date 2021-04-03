@@ -1,5 +1,6 @@
 #include <stdafx.h>
 #include <Game/Player.h>
+#include <Game/Portal.h>
 
 using namespace sf;
 
@@ -86,7 +87,6 @@ void Player::Update(float deltaTime)
 int Player::AdjustPosition(Displayable* d)
 {
    return this->m_CurrentState->AdjustPosition(d);
-  
 }
 void Player::NoCollisionDetected()
 {
@@ -198,10 +198,10 @@ int Ghost::AdjustPosition(Displayable* d)
 
     switch (index_collision)
     {
-        case 0: m_Velocity.y = 0; m_BlockDirection[0] = true; break; // up
-        case 1: m_Velocity.y = 0; m_BlockDirection[1] = true; break; // down
-        case 2: m_Velocity.x = 0; m_BlockDirection[2] = true; break; // left
-        case 3: m_Velocity.x = 0; m_BlockDirection[3] = true; break; //right
+        case 0: m_Velocity.y = 0;  setCollision(0); break; // up
+        case 1: m_Velocity.y = 0;  setCollision(1); break; // down
+        case 2: m_Velocity.x = 0;  setCollision(2); break; // left
+        case 3: m_Velocity.x = 0;  setCollision(3); break; //right
         default:
             m_BlockDirection[0] = false;
             m_BlockDirection[1] = false;
@@ -263,7 +263,7 @@ void Explorator::Update(float deltaTime)
         m_onGround = false;
     }
 
-    if (m_onGround == false)
+    if (m_BlockDirection[1] == false)
     {
         m_Velocity.y = fmin(m_Velocity.y + SPEED_INC, JUMP_MAX);
     }
@@ -319,24 +319,38 @@ void Explorator::UpdateWeapon(Ennemy& e)
         }
     }
 }
+
+void Player::setCollision(int collision)
+{
+    m_BlockDirection[0] = false;
+    m_BlockDirection[1] = false;
+    m_BlockDirection[2] = false;
+    m_BlockDirection[3] = false;
+
+    m_BlockDirection[collision] = true;
+}
 int Explorator::AdjustPosition(Displayable* d)
 {
-    int index_collision = this->index_collision(*d);
+    int index_collision = this->index_collision(*d); 
+
+    if (typeid(*d) == typeid(Portal))
+    {
+        return -1;
+    }
 
     switch (index_collision)
     {
-
-    case 0: setGrounded(false); m_Velocity.y = 0; m_BlockDirection[0] = true; break; // up
-    case 1: setGrounded(true); m_Velocity.y = 0; m_BlockDirection[1] = true; break; // down
-    case 2: m_Velocity.x = 0;  m_BlockDirection[2] = true; break;
-    case 3: m_Velocity.x = 0;  m_BlockDirection[3] = true; break;
+    case 0: setGrounded(false); m_Velocity.y = 0; setCollision(0); break; // up
+        case 1: setGrounded(true); m_Velocity.y = 0;  setCollision(1); break; // down
+        case 2: m_Velocity.x = 0;   setCollision(2); break;
+        case 3: m_Velocity.x = 0;   setCollision(3); break;
   
-    default:
-        m_BlockDirection[0] = false;
-        m_BlockDirection[1] = false;
-        m_BlockDirection[2] = false;
-        m_BlockDirection[3] = false;
-        break;
+        default:
+            m_BlockDirection[0] = false;
+            m_BlockDirection[1] = false;
+            m_BlockDirection[2] = false;
+            m_BlockDirection[3] = false;
+            break;
     }
 
     return index_collision;
@@ -353,6 +367,11 @@ float Explorator::getCurrentLifePoint() const
 void Explorator::loseLifePoint(float amount)
 {
     this->m_lifePoint -= amount;
+
+    if (this->m_lifePoint <= 0.0f)
+    {
+        m_IsDead = true;
+    }
 }
 std::vector<Weapon> Explorator::getWeapon() const
 {
@@ -385,14 +404,13 @@ bool Explorator::isGrounded() const
 {
     return m_onGround;
 }
+bool Explorator::isDead() const
+{
+    return this->m_IsDead;
+}
 void Explorator::setGrounded(bool b)
 {
     m_onGround = b;
 }
-
-
-
-
-
 
 #pragma endregion

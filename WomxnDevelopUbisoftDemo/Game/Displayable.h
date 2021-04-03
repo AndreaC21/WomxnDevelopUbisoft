@@ -6,7 +6,7 @@ class Displayable : public sf::Drawable, public BoxCollideable
 public:
 	Displayable();
 	Displayable(const Displayable&);
-
+	Displayable(std::string pathTexture);
 	Displayable(sf::Vector2f position, std::string pathTexture, bool textureRepeat=false);
 	Displayable(sf::Vector2f position, std::string pathTexture, int width, float scale);
 	Displayable(sf::Vector2f position, std::string pathTexture, int width, int height, float scale);

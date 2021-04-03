@@ -4,33 +4,43 @@
 using namespace sf;
 
 float Platform::scale = 0.3f;
+
 Platform::Platform()
 {
 
 }
 Platform::Platform(const Platform& p) : Displayable(p)
 {
-    m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
-    m_Sprite.rotate(m_rotation);
+    m_Sprite.setScale(scale, scale);
     pos = p.pos;
 }
-Platform::Platform(sf::Vector2f position) : Displayable(position, "Platform\\2.png",true)
-{
-    m_Sprite.setScale(0.3f, 0.3f);
 
-}
-
-Platform::Platform(int i, int j, int w, int h, float r) : Displayable(sf::Vector2f{(float)i*w,(float)j*h}, "Platform\\2.png", w,scale)
+Platform::Platform(int i, int j, int w, int h, float r) : Displayable("Platform\\2.png")
 {
-    m_rotation = r;
+    m_Texture.setRepeated(true);
+    m_Sprite.setTexture(m_Texture);
+    m_Sprite.setScale(scale, scale);
+
+    m_Position = sf::Vector2f{ (float)i * w,(float)j * h };
+
+    if (r == 0.0f || r == 180.0f)
+    {
+        m_Sprite.setTextureRect(sf::IntRect(0, 0, static_cast<int>(w / scale), m_Texture.getSize().x));
+    }
+    else  if (r == 90.0f || r == -90.0f)
+    {
+        m_Sprite.setTextureRect(sf::IntRect(0, 0, static_cast<int>(h / scale),m_Texture.getSize().x));
+    }
     
-    const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
-
+    m_Sprite.setPosition(m_Position.x, m_Position.y);
+    m_rotation = r;
+ 
    // m_Sprite.setOrigin(size * 0.5f);
     m_Sprite.rotate(r);
-   // SetBoundingBox(i*w,j*h,w,h*Platform::scale/2);
+    initPosition();
     SetBoundingBox(m_Sprite.getGlobalBounds());
-    pos = Platform::Position::TOP;
+    
+    //pos = Platform::Position::TOP;
 }
 void Platform::Update(float deltaTime)
 {

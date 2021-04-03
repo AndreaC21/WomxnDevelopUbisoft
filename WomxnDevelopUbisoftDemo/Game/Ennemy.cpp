@@ -29,9 +29,9 @@ Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y,Displayable*p) : En
 	m_radius = 2;
 	m_RadiusDetection = m_radius * case_size_y;
 	m_Column = y;
+	m_Row = x;
 
 	m_ptr_Player = p;
-	
 }
 Ennemy::Ennemy(const Ennemy& e) : Displayable(e)
 {
@@ -41,6 +41,7 @@ Ennemy::Ennemy(const Ennemy& e) : Displayable(e)
 	m_lifePoint = e.m_lifePoint;
 	m_ToDestroy = e.m_ToDestroy;
 	m_Column = e.m_Column;
+	m_Row = e.m_Row;
 	m_OnGround = e.m_OnGround;
 	m_radius = e.m_radius;
 	m_RadiusDetection = e.m_RadiusDetection;
@@ -55,18 +56,14 @@ void Ennemy::Update(float deltaTime)
 {
 	const float SPEED_MAX = 200.0f;
 	
-	if (m_OnGround == false)
-	{
-		m_Velocity.y = 200.0f;
-	}
-	else
+	if (m_OnGround)
 	{
 		m_Velocity.y = 0;
 	}
 
 	if (m_OnGround && SeePlayer())
 	{
-		m_Velocity = MoveTo(m_ptr_Player->getPosition(),SPEED_MAX);
+		m_Velocity.x = MoveTo(m_ptr_Player->getPosition(),SPEED_MAX).x;
 
 		if (IsColliding(*m_ptr_Player))
 		{
@@ -172,4 +169,8 @@ sf::Vector2f Ennemy::MoveTo(sf::Vector2f target, float maxSpeed)
 int Ennemy::getSpawnedColumns() const
 {
 	return this->m_Column;
+}
+int Ennemy::getSpawnedRow() const
+{
+	return this->m_Row;
 }

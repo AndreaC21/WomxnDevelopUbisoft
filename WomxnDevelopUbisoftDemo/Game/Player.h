@@ -20,6 +20,7 @@ public:
 	bool isGhostMode();
 	void Switch();
 	virtual int AdjustPosition(Displayable* d);
+	void setCollision(int  collision);
 
 	Player* getCurrentState();
 	bool* m_BlockDirection;
@@ -44,6 +45,7 @@ public:
 
 	virtual void Update(float deltaTime);
 	virtual int AdjustPosition(Displayable* d);
+	
 
 private:
 	float m_Duration;
@@ -67,13 +69,14 @@ public:
 	bool WeaponTouch(int index_weapon, Ennemy& e);
 	void setGrounded(bool d);
 	bool isGrounded() const;
+	bool isDead() const;
 	std::string getLifePoint() const;
 	float getCurrentLifePoint() const;
 	void loseLifePoint(float amount);
 
 
 private:
-	bool m_onGround, m_CanShoot;
+	bool m_onGround, m_CanShoot,m_IsDead;
 	float m_lifePoint_max, m_lifePoint, m_attack, m_TimePreviousShoot, m_DurationShoot;
 	std::vector<Weapon> m_listWeapon;
 	int m_currentThrowableWeapon, m_maxThrowableWeapon;
