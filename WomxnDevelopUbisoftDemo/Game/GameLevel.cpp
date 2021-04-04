@@ -26,8 +26,7 @@ void GameLevel::Update(float deltaTime)
     if (isGameFinish()==false)
     {
         int counter = 0;
-        // m_player.UpdateShoot(m_clock.getElapsedTime());
-   
+        
         for (int i = 0; i < list_displayable.size(); ++i)
         {
             if (m_Player.getCurrentState()->IsColliding(*list_displayable[i]))
@@ -57,6 +56,7 @@ void GameLevel::Update(float deltaTime)
         for (int i =0; i < m_listEnnemy.size() ;++i)
         {
             m_listEnnemy[i].Update(deltaTime);
+
             if (m_Player.isGhostMode() == false)
             {
                 Explorator* o = static_cast <Explorator*>(m_Player.getCurrentState());
@@ -83,7 +83,8 @@ void GameLevel::Update(float deltaTime)
         }
         if (counter == list_displayable.size())
         {
-            m_Player.NoCollisionDetected();
+            m_Player.getCurrentState()->NoCollisionDetected(0);
+            m_Player.getCurrentState()->NoCollisionDetected(2);
             //m_player.setGrounded(false);
         }
 
@@ -170,10 +171,7 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
         }
 
         ImGui::Text("Block: up: %d - down: %d - left: %d - right: %d", m_Player.getCurrentState()->m_BlockDirection[0] , m_Player.getCurrentState()->m_BlockDirection[1], m_Player.getCurrentState()->m_BlockDirection[2], m_Player.getCurrentState()->m_BlockDirection[3]);
-#
-
-        
-       // ImGui::Text("LF: %f", m_player.getCurrentLifePoint());
+        ImGui::Text("Grounded?:%d", m_Player.getCurrentState()->m_BlockDirection[1]);
     }
 
  
@@ -187,7 +185,8 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
         {
             ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "Game not complete");
         }
-        ImGui::Text("Portal position: %f,%f", m_level.getPortal()->getPosition().x, m_level.getPortal()->getPosition().y);
+        
+        //ImGui::Text("Portal position: %f,%f", m_level.getPortal()->getPosition().x, m_level.getPortal()->getPosition().y);
 
     }
     if (ImGui::CollapsingHeader("Debug"))
@@ -206,6 +205,9 @@ void GameLevel::generateLevel()
 void GameLevel::generateEnnemy()
 {
     m_listEnnemy.push_back(Ennemy(0,0, Case::size_pixel_x, Case::size_pixel_y,&m_Player));
+   // m_listEnnemy.push_back(Ennemy(1,2, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+  //  m_listEnnemy.push_back(Ennemy(3,3, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+   // m_listEnnemy.push_back(Ennemy(5, 1, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
 
 }
 void GameLevel::buildListPlatform()
@@ -276,7 +278,7 @@ void GameLevel::StartEndGameFail()
 
 #pragma region Case
 
-int Case::size_pixel_x = 1000;
+int Case::size_pixel_x = 600;
 int Case::size_pixel_y = 300;
 
 Case::Case()
@@ -473,7 +475,6 @@ std::vector<Platform*> Level::getColumnsPlatform(int columToCheck,int rowToBegin
     std::vector<Platform*> listDisplayable;
     for (int j = rowToBegin+1; j < getSize_m(); ++j)
     {
-      
         if (this->grid[columToCheck][j].isEmpty() == false)
         {
             for (auto d : this->grid[columToCheck][j].getAllContains())
@@ -481,7 +482,7 @@ std::vector<Platform*> Level::getColumnsPlatform(int columToCheck,int rowToBegin
                 if (typeid(*d) == typeid(Platform))
                 {
                     Platform* p = static_cast <Platform*>(d);
-                    if (p->getPos() == Platform::Position::BOTTOM || p->getPos() == Platform::Position::TOP)
+                    if ( p->getPos() == Platform::Position::TOP)
                     {
                         listDisplayable.push_back(static_cast <Platform*>(d));
                     }

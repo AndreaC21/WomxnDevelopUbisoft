@@ -37,10 +37,12 @@ Player::Player(sf::Vector2f p, const char* s) : Displayable(p, s)
 
     m_Sprite_Scale = 0.3f;
     m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
-
-    SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
-
+    m_Sprite.setOrigin(size.x * 0.5f, 0);
+   // SetBoundingBox(m_Position.x - size.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
+   
     m_BlockDirection = new bool[4]{ false,false,false,false};
+   
+    SetBoundingBox(m_Sprite.getGlobalBounds());
 }
 void Player::Update(float deltaTime)
 {
@@ -88,33 +90,55 @@ int Player::AdjustPosition(Displayable* d)
 {
    return this->m_CurrentState->AdjustPosition(d);
 }
-void Player::NoCollisionDetected()
+void Player::setCollision(int collision)
 {
-    this->m_CurrentState->m_BlockDirection[0] = false;
-    this->m_CurrentState->m_BlockDirection[1] = false;
-    this->m_CurrentState->m_BlockDirection[2] = false;
-    this->m_CurrentState->m_BlockDirection[3] = false;
+    if (collision == 0 || collision == 1)
+    {
+        m_Velocity.y = 0;
+        m_BlockDirection[0] = false;
+        m_BlockDirection[1] = false;
+
+        m_BlockDirection[collision] = true;
+    }
+    else if (collision == 2 || collision == 3)
+    {
+        m_Velocity.x = 0;
+        m_BlockDirection[2] = false;
+        m_BlockDirection[3] = false;
+
+        m_BlockDirection[collision] = true;
+    }
 }
-void Player::SwitchMode()
+void Player::NoCollisionDetected(int noCollision) //0 ou 2
 {
+    if (noCollision == 0 || noCollision == 1)
+    {
+        m_BlockDirection[0] = false;
+        m_BlockDirection[1] = false;
+    }
+    if (noCollision == 2 || noCollision == 3)
+    {
+        m_BlockDirection[2] = false;
+        m_BlockDirection[3] = false;
+    }
+   
 }
 void Player::Switch()
 {
     if (typeid(*this->m_CurrentState) == typeid(Explorator))
     {
-        //  m_GhostMode = true;
         this->m_CurrentState = new Ghost(m_Position);
     }
     else
     {
-        //m_GhostMode = false;
         this->m_CurrentState = new Explorator(m_Position);
     }
 
     m_Texture = this->m_CurrentState->m_Texture;
     m_Sprite.setTexture(m_Texture);
-    const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
-    SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
+    SetBoundingBox(m_Sprite.getGlobalBounds());
+    //const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
+   // SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
    
 }
 
@@ -131,6 +155,17 @@ bool Player::isGhostMode()
 Player* Player::getCurrentState()
 {
     return this->m_CurrentState;
+}
+void Player::FlipSprite(bool directionRight)
+{
+    if (directionRight)
+    {
+        m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
+    }
+    else
+    {
+        m_Sprite.setScale(-m_Sprite_Scale, m_Sprite_Scale);
+    }
 }
 #pragma endregion
 
@@ -155,10 +190,12 @@ void Ghost::Update(float deltaTime)
     if (Keyboard::isKeyPressed(Keyboard::Right) && m_BlockDirection[3] == false)
     {
         m_Velocity.x = fmin(m_Velocity.x + SPEED_INC, SPEED_MAX);
+        FlipSprite(true);
     }
     else if (Keyboard::isKeyPressed(Keyboard::Left) && m_BlockDirection[2] == false)
     {
         m_Velocity.x = fmax(m_Velocity.x - SPEED_INC, -SPEED_MAX);
+        FlipSprite(false);
     }
     else
     {
@@ -182,7 +219,7 @@ void Ghost::Update(float deltaTime)
 
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
-    SetCenter(m_Position.x, m_Position.y);
+    SetBoundingBox(m_Sprite.getGlobalBounds());
 }
 
 int Ghost::AdjustPosition(Displayable* d)
@@ -194,23 +231,25 @@ int Ghost::AdjustPosition(Displayable* d)
 
     }
 
-    int index_collision = this->index_collision(*d);
-
-    switch (index_collision)
+    int index_collision = this->collisionUpDown(*d);
+    if (index_collision != -1)
     {
-        case 0: m_Velocity.y = 0;  setCollision(0); break; // up
-        case 1: m_Velocity.y = 0;  setCollision(1); break; // down
-        case 2: m_Velocity.x = 0;  setCollision(2); break; // left
-        case 3: m_Velocity.x = 0;  setCollision(3); break; //right
-        default:
-            m_BlockDirection[0] = false;
-            m_BlockDirection[1] = false;
-            m_BlockDirection[2] = false;
-            m_BlockDirection[3] = false;
-            break;
-
+        setCollision(index_collision);
     }
-    return index_collision;
+    else
+    {
+        NoCollisionDetected(0);
+    }
+
+    index_collision = this->collisionLeftRight(*d);
+    if (index_collision != -1)
+    {
+        setCollision(index_collision);
+    }
+    else
+    {
+        NoCollisionDetected(2);
+    }
 }
 
 #pragma endregion
@@ -218,8 +257,6 @@ int Ghost::AdjustPosition(Displayable* d)
 #pragma region Explorator
 Explorator::Explorator(sf::Vector2f p) : Player(p, "Player\\Idle_1.png")
 {
-    m_onGround = false;
-    
     m_lifePoint_max = 100.0f;
     m_lifePoint = m_lifePoint_max;
     m_attack = 25.0f;
@@ -227,16 +264,17 @@ Explorator::Explorator(sf::Vector2f p) : Player(p, "Player\\Idle_1.png")
     m_currentThrowableWeapon = 0;
     m_DurationShoot = 0.1f;
     m_TimePreviousShoot = 0.0f;
+
     m_CanShoot = true;
+    m_IsDead = false;
 
 }
 Explorator::Explorator(const Explorator& p) : Player(p)
 {
-    m_onGround = p.m_onGround;
-   
     m_lifePoint = p.m_lifePoint;
     m_lifePoint_max = p.m_lifePoint_max;
     m_attack = p.m_attack;
+    m_IsDead = p.m_IsDead;
 }
 void Explorator::Update(float deltaTime)
 {
@@ -245,32 +283,31 @@ void Explorator::Update(float deltaTime)
     const float SLOWDOWN_RATE = 0.9f;
     const float JUMP_MAX = 600.0f;
 
+    if (isGrounded()==false)
+    {
+        m_Velocity.y = fmin(m_Velocity.y + SPEED_INC, JUMP_MAX);
+        //m_Velocity.y *= SLOWDOWN_RATE;
+    }
+
     if (Keyboard::isKeyPressed(Keyboard::Right)&& m_BlockDirection[3]==false)
     {
         m_Velocity.x = fmin(m_Velocity.x + SPEED_INC, SPEED_MAX);
+        
+        FlipSprite(true);
     }
     else if (Keyboard::isKeyPressed(Keyboard::Left) &&m_BlockDirection[2]==false)
     {
         m_Velocity.x = fmax(m_Velocity.x - SPEED_INC, -SPEED_MAX);
+        FlipSprite(false);
+
     }
     else
     {
         m_Velocity.x *= SLOWDOWN_RATE;
     }
-    if (Keyboard::isKeyPressed(Keyboard::Space) && m_onGround)
+    if (Keyboard::isKeyPressed(Keyboard::Space) && isGrounded())
     {
         m_Velocity.y = -JUMP_MAX;
-        m_onGround = false;
-    }
-
-    if (m_BlockDirection[1] == false)
-    {
-        m_Velocity.y = fmin(m_Velocity.y + SPEED_INC, JUMP_MAX);
-    }
-    else
-    {
-        m_Velocity.y = 0;
-        //m_Velocity.y *= SLOWDOWN_RATE;
     }
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_CanShoot )
@@ -296,8 +333,7 @@ void Explorator::Update(float deltaTime)
   
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
-  
-    SetCenter(m_Position.x, m_Position.y);
+    SetBoundingBox(m_Sprite.getGlobalBounds());
 }
 void Explorator::UpdateWeapon(Displayable* d)
 {
@@ -320,37 +356,32 @@ void Explorator::UpdateWeapon(Ennemy& e)
     }
 }
 
-void Player::setCollision(int collision)
-{
-    m_BlockDirection[0] = false;
-    m_BlockDirection[1] = false;
-    m_BlockDirection[2] = false;
-    m_BlockDirection[3] = false;
 
-    m_BlockDirection[collision] = true;
-}
 int Explorator::AdjustPosition(Displayable* d)
 {
-    int index_collision = this->index_collision(*d); 
-
     if (typeid(*d) == typeid(Portal))
     {
         return -1;
     }
 
-    switch (index_collision)
+    int index_collision = this->collisionUpDown(*d);
+    if (index_collision != -1)
     {
-    case 0: setGrounded(false); m_Velocity.y = 0; setCollision(0); break; // up
-        case 1: setGrounded(true); m_Velocity.y = 0;  setCollision(1); break; // down
-        case 2: m_Velocity.x = 0;   setCollision(2); break;
-        case 3: m_Velocity.x = 0;   setCollision(3); break;
-  
-        default:
-            m_BlockDirection[0] = false;
-            m_BlockDirection[1] = false;
-            m_BlockDirection[2] = false;
-            m_BlockDirection[3] = false;
-            break;
+        setCollision(index_collision);
+    }
+    else
+    {
+        NoCollisionDetected(0);
+    }
+
+    index_collision = this->collisionLeftRight(*d);
+    if (index_collision != -1)
+    {
+        setCollision(index_collision);
+    }
+    else
+    {
+        NoCollisionDetected(2);
     }
 
     return index_collision;
@@ -402,15 +433,12 @@ bool Explorator::WeaponTouch(int index_weapon, Ennemy& e)
 
 bool Explorator::isGrounded() const
 {
-    return m_onGround;
+    return this->m_BlockDirection[1] == true;
 }
 bool Explorator::isDead() const
 {
     return this->m_IsDead;
 }
-void Explorator::setGrounded(bool b)
-{
-    m_onGround = b;
-}
+
 
 #pragma endregion

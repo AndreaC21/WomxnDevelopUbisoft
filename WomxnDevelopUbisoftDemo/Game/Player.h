@@ -16,7 +16,7 @@ public:
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
 
-	void NoCollisionDetected();
+	void NoCollisionDetected(int);
 	bool isGhostMode();
 	void Switch();
 	virtual int AdjustPosition(Displayable* d);
@@ -32,7 +32,7 @@ protected:
 	sf::Time clock;
 	Player* m_CurrentState;
 
-	void SwitchMode();
+	void FlipSprite(bool);
 
 };
 
@@ -67,7 +67,6 @@ public:
 	void UpdateShoot(sf::Time t);
 	bool WeaponTouch(int index_weapon, Displayable* d);
 	bool WeaponTouch(int index_weapon, Ennemy& e);
-	void setGrounded(bool d);
 	bool isGrounded() const;
 	bool isDead() const;
 	std::string getLifePoint() const;
@@ -76,7 +75,7 @@ public:
 
 
 private:
-	bool m_onGround, m_CanShoot,m_IsDead;
+	bool m_CanShoot,m_IsDead;
 	float m_lifePoint_max, m_lifePoint, m_attack, m_TimePreviousShoot, m_DurationShoot;
 	std::vector<Weapon> m_listWeapon;
 	int m_currentThrowableWeapon, m_maxThrowableWeapon;

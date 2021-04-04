@@ -24,33 +24,38 @@ public:
     }
 
     // 0 -> up,1->down,2->left,3->right
-    inline const int index_collision(const BoxCollideable& other) const
+    inline const int collisionLeftRight(const BoxCollideable& otherCollider) const
     {
-        sf::FloatRect box = other.GetBoundingBox();
+        sf::FloatRect other = otherCollider.GetBoundingBox();
        
-        if ( (box.left < m_BoundingBox.left && m_BoundingBox.left < (box.left + box.width)) ||
-            (  box.left < (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) < (box.left + box.width)))
-        {
-            // TOP
-            if (m_BoundingBox.top <= (box.top + box.height) && m_BoundingBox.top > box.top)
-                return 0;
-            // DOWN
-            if ((m_BoundingBox.top + m_BoundingBox.height) >= box.top && (m_BoundingBox.top + m_BoundingBox.height) <= (box.top + box.height) ) 
-                return 1;
-        }
-
-        if ((box.top < m_BoundingBox.top && m_BoundingBox.top < (box.top + box.height)) ||
-            (box.top < (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) < (box.top + box.height)))
+        if ((other.top < m_BoundingBox.top && m_BoundingBox.top < (other.top + other.height)))// ||
+          //  (other.top < (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) < (other.top + other.height)))
         {
             //LEFT
-            if (m_BoundingBox.left < (box.left + box.width) && m_BoundingBox.left > box.left)
+            if (other.left < m_BoundingBox.left && m_BoundingBox.left < (other.left + other.width) )
                 return 2;
             //Right
-            if ((m_BoundingBox.left + m_BoundingBox.width ) > box.left  && (m_BoundingBox.left + m_BoundingBox.width) <( box.left + box.height))
+            if (other.left < (m_BoundingBox.left + m_BoundingBox.width)  && (m_BoundingBox.left + m_BoundingBox.width) <(other.left + other.width))
                 return 3;
         }
 
         return -1; 
+    }
+
+    inline const int collisionUpDown(const BoxCollideable& otherCollider) const
+    {
+        sf::FloatRect other = otherCollider.GetBoundingBox();
+        if ((other.left < m_BoundingBox.left && m_BoundingBox.left < (other.left + other.width)) ||
+            (other.left < (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) < (other.left + other.width)))
+        {
+            // TOP
+            if (m_BoundingBox.top <= (other.top + other.height) && m_BoundingBox.top > other.top)
+                return 0;
+            // DOWN
+            if ((m_BoundingBox.top + m_BoundingBox.height) >= other.top && (m_BoundingBox.top + m_BoundingBox.height) <= (other.top + other.height))
+                return 1;
+        }
+        return -1;
     }
 
 protected:
