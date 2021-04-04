@@ -151,48 +151,10 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     ImGui::Text("Press F1 to close this debug menu");
     ImGui::NewLine();
 
-    if (ImGui::CollapsingHeader("Player Statut"))
-    {
-        ImGui::Text("X: %f Y: %f", m_Player.getPosition().x, m_Player.getPosition().y);
-        if (m_Player.isGhostMode())
-        {
-            ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "Ghost");
-        }
-        else
-        {
-            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "Explorator");
-        }
-        ImGui::Text("type: %s", typeid(*m_Player.getCurrentState()).name());
-        if (typeid(*m_Player.getCurrentState()) == typeid(Explorator))
-        {
-            Explorator* e = static_cast<Explorator*>(m_Player.getCurrentState());
-            //e->loseLifePoint(1);
-            ImGui::Text("LF: %s", e->getLifePoint().c_str());
-        }
-
-        ImGui::Text("Block: up: %d - down: %d - left: %d - right: %d", m_Player.getCurrentState()->m_BlockDirection[0] , m_Player.getCurrentState()->m_BlockDirection[1], m_Player.getCurrentState()->m_BlockDirection[2], m_Player.getCurrentState()->m_BlockDirection[3]);
-        ImGui::Text("Grounded?:%d", m_Player.getCurrentState()->m_BlockDirection[1]);
-    }
-
- 
-    if (ImGui::CollapsingHeader("Game status"))
-    {
-        if (m_IsFinished)
-        {
-            ImGui::TextColored(ImVec4(0, 255.f, 0.f, 1.f), "Game complete");
-        }
-        else
-        {
-            ImGui::TextColored(ImVec4(255.f, 0.f, 0.f, 1.f), "Game not complete");
-        }
-        
-        //ImGui::Text("Portal position: %f,%f", m_level.getPortal()->getPosition().x, m_level.getPortal()->getPosition().y);
-
-    }
+   
     if (ImGui::CollapsingHeader("Debug"))
     {
-        //ImGui::Text("%d: ",(int) m_level.getContainsCaseAt(0, 1).size());
-
+        
     }
     ImGui::End();
 }

@@ -2,7 +2,6 @@
 
 #include <Engine/Game.h>
 #include <Game/Player.h>
-#include <Game/MainCharacter.h>
 #include <Game/Platform.h>
 #include <Game/Obstacle.h>
 #include <Game/Ennemy.h>

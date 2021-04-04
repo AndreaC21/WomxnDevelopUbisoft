@@ -250,6 +250,8 @@ int Ghost::AdjustPosition(Displayable* d)
     {
         NoCollisionDetected(2);
     }
+
+    return 0;
 }
 
 #pragma endregion
