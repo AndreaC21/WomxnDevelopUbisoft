@@ -20,14 +20,16 @@ public:
     void set(int x, int y);
     int getX() const;
     int getY() const;
-    Portal& getPortal();
+    
     void addPortal(Portal p );
     void addPlatform(Platform p);
     void addObstacle(Obstacle o);
     void addDisplayable(Displayable* d);
   
-    std::vector<Displayable*> getAllContains() const;
-    std::vector<Platform> getAllPlatform() const;
+    std::vector<Platform>& getAllPlatform();
+    std::vector<Obstacle>& getAllObstacle() ;
+    Portal& getPortal();
+
     bool isEmpty() const;
 
     bool hasObstacle(Platform::Position direction) ;
@@ -38,9 +40,10 @@ private:
     int x, y;
     bool m_empty;
     Portal portal;
-    std::vector<Platform> listPlatform;
-    std::vector<Obstacle> listObstacle;
-    std::vector<Displayable*> listDisplayable;
+    std::vector<Platform> m_listPlatform;
+    std::vector<Obstacle> m_listObstacle;
+    
+    //std::vector<Displayable*> listDisplayable;
 
 
 public:
@@ -64,18 +67,17 @@ public:
 
     Case at(int i, int j) const;
 
-    void set(int i, int j, Displayable d) const;
     void SetPlatform(int i, int j, float rotation=0.0f) const;
-    void set_obstacle(int i, int j, bool) const;
+    void SetObstacle(int i, int j, bool) const;
     void SetPortal(int i, int j);
-    std::vector<Displayable*> getContainsCaseAt(int i, int j) const;
+   // std::vector<Displayable*> getContainsCaseAt(int i, int j) const;
     std::vector<Displayable*> GetAllDisplayable() const;
     int getSize_n() const;
     int getSize_m() const;
     Portal* getPortal() const;
     std::vector<Platform*> getColumnsPlatform(int column,int rowToBegin);
 
-    void buildListDisplayable();
+    void BuildListDisplayable();
 
     struct Direction {
         int x, y;

@@ -81,7 +81,6 @@ void GameLevel::Render(sf::RenderTarget& target)
     target.clear(sf::Color(0, 0, 0));
     target.draw(m_Background);
 
-   // target.draw(m_player);
     target.draw(*m_Player.getCurrentState());
     
     for (int i = 0; i < m_level.GetAllDisplayable().size(); ++i)
@@ -143,7 +142,7 @@ void GameLevel::generateLevel()
 void GameLevel::generateEnnemy()
 {
     m_listEnnemy.push_back(Ennemy(0,0, Case::size_pixel_x, Case::size_pixel_y,&m_Player));
-   // m_listEnnemy.push_back(Ennemy(1,2, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+  // m_listEnnemy.push_back(Ennemy(1,2, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
   //  m_listEnnemy.push_back(Ennemy(3,3, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
    // m_listEnnemy.push_back(Ennemy(5, 1, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
 
@@ -221,17 +220,13 @@ Case::Case(const Case& c)
     this->y = c.y;
     if (m_empty == false)
     {
-        for (int i = 0; i < c.listDisplayable.size(); ++i)
+         for (int i = 0; i < c.m_listObstacle.size(); ++i)
         {
-            listDisplayable.push_back(c.listDisplayable[i]);
+            m_listObstacle.push_back(c.m_listObstacle[i]);
         }
-        for (int i = 0; i < c.listObstacle.size(); ++i)
+        for (int i = 0; i < c.m_listPlatform.size(); ++i)
         {
-            listObstacle.push_back(c.listObstacle[i]);
-        }
-        for (int i = 0; i < c.listPlatform.size(); ++i)
-        {
-            listPlatform.push_back(c.listPlatform[i]);
+            m_listPlatform.push_back(c.m_listPlatform[i]);
         }
         this->portal = c.portal;
     }
@@ -248,8 +243,14 @@ int Case::getY() const {return this->y;}
 
 Portal& Case::getPortal() { return this->portal; }
 
-std::vector<Platform> Case::getAllPlatform() const { return this->listPlatform; }
-std::vector<Displayable*> Case::getAllContains() const { return this->listDisplayable; }
+std::vector<Platform>& Case::getAllPlatform() 
+{ 
+    return this->m_listPlatform; 
+}
+std::vector<Obstacle>& Case::getAllObstacle() 
+{
+    return this->m_listObstacle;
+}
 
 bool Case::hasObstacle(Platform::Position direction)
 {
@@ -260,8 +261,7 @@ bool Case::hasObstacle(Platform::Position direction)
             if (this->getAllPlatform()[i].getPos() == direction)
             {
                 return true;
-            }
-            
+            } 
         }
     }
     return false;
@@ -269,29 +269,19 @@ bool Case::hasObstacle(Platform::Position direction)
 void Case::addPlatform(Platform p)
 {
     this->m_empty = false;
-    this->listPlatform.push_back(p);
-    this->listDisplayable.push_back(&listPlatform.back());
+    this->m_listPlatform.push_back(p);
 }
 
 void Case::addObstacle(Obstacle o)
 {
     this->m_empty = false;
-    this->listObstacle.push_back(o);
-    this->listDisplayable.push_back(&listObstacle[listObstacle.size()-1]);
-   
+    this->m_listObstacle.push_back(o); 
 }
 void Case::addPortal(Portal p)
 {
     this->m_empty = false;
     this->portal = p;
-    this->listDisplayable.push_back(&this->portal);
 }
-void Case::addDisplayable(Displayable* d)
-{
-    this->m_empty = false;
-    this->listDisplayable.push_back(d);
-}
-
 
 bool Case::isEmpty() const
 {
@@ -360,7 +350,7 @@ void Level::SetPlatform(int i, int j, float rotation) const
 {
     grid[i][j].addPlatform( Platform(i, j, Case::size_pixel_x, Case::size_pixel_y,rotation));
 }
-void Level::set_obstacle(int i, int j,bool traversable) const
+void Level::SetObstacle(int i, int j,bool traversable) const
 {
     grid[i][j].addObstacle(Obstacle(i, j, Case::size_pixel_x, Case::size_pixel_y,traversable));
 }
@@ -395,10 +385,6 @@ std::vector<Platform*> Level::getColumnsPlatform(int columToCheck,int rowToBegin
     }
     return listDisplayable;
 }
-std::vector<Displayable*> Level::getContainsCaseAt(int i, int j) const
-{
-   return grid[i][j].getAllContains();
-}
 
 Portal* Level::getPortal() const
 {
@@ -411,32 +397,31 @@ void Level::genereLevel()
     
     for (int i = 0; i < Level::grid_size; ++i)
     {
-      //  this->set_platform(i, 0); // TOP BORDER
-       // this->set_platform(i, Level::grid_size-1);  //BOTTOM BORDER
-        //this->set_platform(0, i, 90.0f); // LEFT BORDER
+        this->SetPlatform(i, 0); // TOP BORDER
+        this->SetPlatform(i, Level::grid_size-1);  //BOTTOM BORDER
+        this->SetPlatform(0, i, 90.0f); // LEFT BORDER
     }
     
-    this->set_obstacle(1, 0, true);
+    this->SetObstacle(1, 0, true);
 
     this->SetPlatform(0, 1);
-//    this->SetPlatform(0, 1);
-   /* this->set_platform(0, 1); this->set_platform(0, 3); this->set_platform(0, 4); this->set_platform(0, 6);
-    this->set_platform(1, 2); this->set_platform(1, 3); this->set_platform(1, 5);
-    this->set_platform(2, 1); this->set_platform(2, 3); this->set_platform(2, 4); this->set_platform(2, 6);
-    this->set_platform(3, 2); this->set_platform(3, 4);  this->set_platform(3, 5);
-    this->set_platform(4, 1); this->set_platform(4, 2); this->set_platform(4, 3); this->set_platform(4, 4); this->set_platform(4, 6);
-    this->set_platform(5, 1); this->set_platform(5, 6);
-    this->set_platform(6, 1); this->set_platform(6, 2); this->set_platform(6, 3); this->set_platform(6, 4); this->set_platform(6, 6);
-    this->set_platform(7, 4); this->set_platform(7, 6);
-    */
+
+    this->SetPlatform(0, 1); this->SetPlatform(0, 3); this->SetPlatform(0, 4); this->SetPlatform(0, 6);
+    this->SetPlatform(1, 2); this->SetPlatform(1, 3); this->SetPlatform(1, 5);
+    this->SetPlatform(2, 1); this->SetPlatform(2, 3); this->SetPlatform(2, 4); this->SetPlatform(2, 6);
+    this->SetPlatform(3, 2); this->SetPlatform(3, 4); this->SetPlatform(3, 5);
+    this->SetPlatform(4, 1); this->SetPlatform(4, 2); this->SetPlatform(4, 3); this->SetPlatform(4, 4); this->SetPlatform(4, 6);
+    this->SetPlatform(5, 1); this->SetPlatform(5, 6);
+    this->SetPlatform(6, 1); this->SetPlatform(6, 2); this->SetPlatform(6, 3); this->SetPlatform(6, 4); this->SetPlatform(6, 6);
+    this->SetPlatform(7, 4); this->SetPlatform(7, 6);
     
     this->SetPortal(5, 5);
 
-    buildListDisplayable();
+    BuildListDisplayable();
    
 }
 
-void Level::buildListDisplayable()
+void Level::BuildListDisplayable()
 {
     for (int i = 0; i < this->n; ++i)
     {
@@ -444,9 +429,13 @@ void Level::buildListDisplayable()
         {
             if (this->at(i, j).isEmpty() == false)
             {
-                for (int h = 0; h < this->at(i, j).getAllContains().size(); ++h)
+                for (int h = 0; h < this->at(i, j).getAllPlatform().size(); ++h)
                 {
-                    m_listDisplayable.push_back(this->at(i, j).getAllContains()[h]);
+                    m_listDisplayable.push_back(&(grid[i][j].getAllPlatform()[h]));
+                }
+                for (int h = 0; h < this->at(i, j).getAllObstacle().size(); ++h)
+                {
+                    m_listDisplayable.push_back(&(grid[i][j].getAllObstacle()[h]));
                 }
             }
         }

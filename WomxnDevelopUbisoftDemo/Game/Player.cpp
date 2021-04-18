@@ -161,7 +161,6 @@ Ghost::Ghost(const Ghost& g) : Player(g)
 
 void Ghost::Update(float deltaTime)
 {
- 
     if (Keyboard::isKeyPressed(Keyboard::Right) && m_BlockDirection[eDirection::Right] == false)
     {
         m_Velocity.x = SPEED_MAX;
@@ -184,7 +183,7 @@ void Ghost::Update(float deltaTime)
     }
     else if (Keyboard::isKeyPressed(Keyboard::Up) && m_BlockDirection[eDirection::Top] == false)
     {
-        m_Velocity.y = SPEED_MAX;
+        m_Velocity.y = -SPEED_MAX;
 
     }
     else
@@ -201,8 +200,8 @@ int Ghost::AdjustPosition(Displayable* d)
 {
     if (typeid(*d) == typeid(Obstacle))
     {
-        Obstacle* o = dynamic_cast <Obstacle*>(d);
-        if (o->canGhostTraverse()) return -1;
+        Obstacle* o = dynamic_cast<Obstacle*>(d);
+        if (o != nullptr && o->canGhostTraverse()) return -1;
     }
 
     int index_collision = this->CollisionDirection(*d);
