@@ -17,15 +17,24 @@ Weapon::Weapon(const Weapon& w) : Displayable(w)
     m_TimeStart = w.m_TimeStart;
     m_TimeEnd = w.m_TimeEnd;
 
-    m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
+    if (m_Direction)
+        m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
+    else
+        m_Sprite.setScale(-m_Sprite_Scale, m_Sprite_Scale);
+
+    SetBoundingBox(m_Sprite.getGlobalBounds());
 }
 Weapon::Weapon(sf::Vector2f position, bool direction, float timeStart) : Displayable(position, "Weapon\\Kunai.png")
 {
 	m_force = 500.0f;
 	m_duration = 2.0f;
 	m_Sprite_Scale = 0.5f;
-	m_Sprite.setScale(m_Sprite_Scale,m_Sprite_Scale);
+   
     m_Direction = direction;
+    if (m_Direction)
+        m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
+    else
+        m_Sprite.setScale(-m_Sprite_Scale, m_Sprite_Scale);
     m_ToDestroy = false;
     m_TimeStart = timeStart;
     m_TimeEnd = m_TimeStart + m_duration;
@@ -63,8 +72,7 @@ void Weapon::Update(float deltaTime)
 
 bool Weapon::TouchDisplayable(Displayable* d)
 {
-    this->test_bool = true;
-    
+   
     if ( typeid(*d) == typeid(Obstacle) || typeid(*d) == typeid(Platform))
     {
        m_ToDestroy = true;

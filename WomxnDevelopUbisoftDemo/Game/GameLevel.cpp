@@ -1,7 +1,7 @@
 #include <stdafx.h>
 #include "GameLevel.h"
 
-bool b = false;
+
 #pragma region GameLevel
 
 int GameLevel::max_size_y = Level::grid_size * Case::size_pixel_y;
@@ -14,8 +14,6 @@ m_level()
 {
     generateLevel();
     generateEnnemy();
-
-    buildListPlatform();
     m_IsFinished = false;
     m_ExecuteEndGame = false;
     m_clock.restart();
@@ -25,73 +23,15 @@ void GameLevel::Update(float deltaTime)
 {
     if (isGameFinish()==false)
     {
-        int counter = 0;
-        
-        for (int i = 0; i < list_displayable.size(); ++i)
-        {
-            if (m_Player.getCurrentState()->IsColliding(*list_displayable[i]))
-            {
-                m_Player.AdjustPosition(list_displayable[i]);
-            }
-            else
-            {
-                counter++;
-            }
-        
-            if (m_Player.isGhostMode()==false)
-            {
-                Explorator* o = static_cast <Explorator*>(m_Player.getCurrentState());
-                o->UpdateWeapon(list_displayable[i]);
-            }
-       
-        }
-        if (m_Player.isGhostMode() == false)
-        {
-            Explorator* o = static_cast <Explorator*>(m_Player.getCurrentState());
-            o->UpdateShoot(m_clock.getElapsedTime());
-        }
-    
-        m_Player.Update(deltaTime); 
-    
-        for (int i =0; i < m_listEnnemy.size() ;++i)
-        {
-            m_listEnnemy[i].Update(deltaTime);
-
-            if (m_Player.isGhostMode() == false)
-            {
-                Explorator* o = static_cast <Explorator*>(m_Player.getCurrentState());
-                o->UpdateWeapon(m_listEnnemy[i]);
-            }
-         
-            if (m_listEnnemy[i].isGrounded() == false)
-            {
-                m_listEnnemy[i].Fall();
-                
-                for (auto& p : this->m_level.getColumnsPlatform(m_listEnnemy[i].getSpawnedColumns(),m_listEnnemy[i].getSpawnedRow()))
-                {
-                    if (m_listEnnemy[i].IsColliding(*p))
-                    {
-                        m_listEnnemy[i].StopFall();
-                    }
-                }
-            }
-            if (m_listEnnemy[i].Dead())
-            {
-                m_listEnnemy.erase(std::find(m_listEnnemy.begin(), m_listEnnemy.end(), m_listEnnemy[i]));
-            }
-        
-        }
-        if (counter == list_displayable.size())
-        {
-            m_Player.getCurrentState()->NoCollisionDetected(0);
-            m_Player.getCurrentState()->NoCollisionDetected(2);
-            //m_player.setGrounded(false);
-        }
-
+      
+        m_Player.UpdateCollisionWithDisplayable(m_level.GetAllDisplayable());
+        m_Player.UpdateWeaponCollisionWith(m_listEnnemy);
+        m_Player.Update(deltaTime);
+        UpdateEnnemy(deltaTime);
+  
         m_View.setCenter(m_Player.getPosition());
         m_Window.setView(m_View);
 
-        
     }
     // Game finish player find exit
     else
@@ -112,6 +52,30 @@ void GameLevel::Update(float deltaTime)
     }
 }
 
+void GameLevel::UpdateEnnemy(float deltaTime)
+{
+    for (int i = 0; i < m_listEnnemy.size(); ++i)
+    {
+        m_listEnnemy[i].Update(deltaTime);
+
+        if (m_listEnnemy[i].isGrounded() == false)
+        {
+            m_listEnnemy[i].Fall();
+
+            for (auto& p : this->m_level.getColumnsPlatform(m_listEnnemy[i].getSpawnedColumns(), m_listEnnemy[i].getSpawnedRow()))
+            {
+                if (m_listEnnemy[i].IsColliding(*p))
+                {
+                    m_listEnnemy[i].StopFall();
+                }
+            }
+        }
+        if (m_listEnnemy[i].Dead())
+        {
+            m_listEnnemy.erase(std::find(m_listEnnemy.begin(), m_listEnnemy.end(), m_listEnnemy[i]));
+        }
+    }
+}
 void GameLevel::Render(sf::RenderTarget& target)
 {
     target.clear(sf::Color(0, 0, 0));
@@ -120,17 +84,17 @@ void GameLevel::Render(sf::RenderTarget& target)
    // target.draw(m_player);
     target.draw(*m_Player.getCurrentState());
     
-    for (int i = 0; i < list_displayable.size(); ++i)
+    for (int i = 0; i < m_level.GetAllDisplayable().size(); ++i)
     {
-        target.draw(*list_displayable[i]);
+        target.draw(*m_level.GetAllDisplayable()[i]);
     }
     if (m_Player.isGhostMode() == false)
     {
-        Explorator* e = static_cast <Explorator*>(m_Player.getCurrentState());
+        Explorator* e = dynamic_cast <Explorator*>(m_Player.getCurrentState());
 
-        for (int i = 0; i < e->getWeapon().size(); ++i)
+        for (int i = 0; i < e->getWeapons().size(); ++i)
         {
-            target.draw(e->getWeapon()[i]);
+            target.draw(e->getWeapons()[i]);
         }
     }
     
@@ -151,10 +115,22 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     ImGui::Text("Press F1 to close this debug menu");
     ImGui::NewLine();
 
-   
-    if (ImGui::CollapsingHeader("Debug"))
+    if (ImGui::CollapsingHeader("Collision"))
     {
-        
+        ImGui::Text("Block: top: %d - bottom: %d - left: %d - right: %d", m_Player.getCurrentState()->m_BlockDirection[0], m_Player.getCurrentState()->m_BlockDirection[1], m_Player.getCurrentState()->m_BlockDirection[2], m_Player.getCurrentState()->m_BlockDirection[3]);
+     
+
+    }
+    if (ImGui::CollapsingHeader("Weapon"))
+    {
+        Explorator* e = dynamic_cast <Explorator*>(m_Player.getCurrentState());
+        ImGui::Text("%d ", (int)e->getWeapons().size());
+   
+    }
+    if (ImGui::CollapsingHeader("Player"))
+    {
+        Explorator* e = dynamic_cast <Explorator*>(m_Player.getCurrentState());
+        ImGui::Text("%s",e->getLifePoint().c_str());
     }
     ImGui::End();
 }
@@ -172,24 +148,7 @@ void GameLevel::generateEnnemy()
    // m_listEnnemy.push_back(Ennemy(5, 1, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
 
 }
-void GameLevel::buildListPlatform()
-{
-    // GET ALL PLATFORM AND OBSTACLE FROM THE GRID 
-    for (int i = 0; i < m_level.getSize_n() ;++i)
-    {
-        for (int j = 0; j < m_level.getSize_n(); ++j)
-        {
-            if (m_level.at(i, j).isEmpty() == false)
-            {
-                for (int h = 0; h < m_level.getContainsCaseAt(i,j).size(); ++h)
-                {
-                    list_displayable.push_back(m_level.getContainsCaseAt(i,j)[h]);
-                   
-                }
-            }
-        }
-    }
-}
+
 bool GameLevel::isGameFinish()
 {
     if (m_Player.isGhostMode() == false)
@@ -286,23 +245,23 @@ void Case::set(int x, int y)
 
 int Case::getX() const {return this->x;}
 int Case::getY() const {return this->y;}
+
 Portal& Case::getPortal() { return this->portal; }
+
+std::vector<Platform> Case::getAllPlatform() const { return this->listPlatform; }
+std::vector<Displayable*> Case::getAllContains() const { return this->listDisplayable; }
 
 bool Case::hasObstacle(Platform::Position direction)
 {
     if (this->m_empty == false)
     {
-        for (int i = 0; i < this->getAllContains().size(); ++i)
+        for (int i = 0; i < this->getAllPlatform().size(); ++i)
         {
-            if (typeid(*this->getAllContains()[i]) == typeid(Platform))
+            if (this->getAllPlatform()[i].getPos() == direction)
             {
-                Platform* p = static_cast<Platform*>(this->getAllContains()[i]);
-
-                if (p->getPos() == direction)
-                {
-                    return true;
-                }
+                return true;
             }
+            
         }
     }
     return false;
@@ -332,10 +291,7 @@ void Case::addDisplayable(Displayable* d)
     this->m_empty = false;
     this->listDisplayable.push_back(d);
 }
-std::vector<Displayable*> Case::getAllContains()
-{
-    return this->listDisplayable;
-}
+
 
 bool Case::isEmpty() const
 {
@@ -349,7 +305,6 @@ int Level::grid_size = 8;
 
 Level::Level()
 {
-   
     this->n = grid_size;
     this->m = grid_size;
 
@@ -383,19 +338,6 @@ Level::Level(const Level&l)
     }
    
 }
-Level::Level(int n, int m) 
-{
-    this->n = n;
-    this->m = m;
-
-    /* Allocation dynamique */
-    grid = new Case * [n];
-    for (int i = 0; i < n; ++i)
-    {
-        grid[i] = new Case[m];
-    }
-    genereLevel();
-}
 
 Case Level::at(int i, int j) const
 {
@@ -410,10 +352,13 @@ Level::~Level()
     }
     delete [] grid;
 }
-void Level::set_platform(int i, int j, float rotation) const
+std::vector<Displayable*> Level::GetAllDisplayable() const
+{
+    return m_listDisplayable;
+}
+void Level::SetPlatform(int i, int j, float rotation) const
 {
     grid[i][j].addPlatform( Platform(i, j, Case::size_pixel_x, Case::size_pixel_y,rotation));
-   
 }
 void Level::set_obstacle(int i, int j,bool traversable) const
 {
@@ -438,16 +383,12 @@ std::vector<Platform*> Level::getColumnsPlatform(int columToCheck,int rowToBegin
     for (int j = rowToBegin+1; j < getSize_m(); ++j)
     {
         if (this->grid[columToCheck][j].isEmpty() == false)
-        {
-            for (auto d : this->grid[columToCheck][j].getAllContains())
+        { 
+            for (Platform& p : this->grid[columToCheck][j].getAllPlatform())
             {
-                if (typeid(*d) == typeid(Platform))
+                if ( p.getPos() == Platform::Position::TOP)
                 {
-                    Platform* p = static_cast <Platform*>(d);
-                    if ( p->getPos() == Platform::Position::TOP)
-                    {
-                        listDisplayable.push_back(static_cast <Platform*>(d));
-                    }
+                    listDisplayable.push_back(&p);
                 }
             }
         }
@@ -456,9 +397,7 @@ std::vector<Platform*> Level::getColumnsPlatform(int columToCheck,int rowToBegin
 }
 std::vector<Displayable*> Level::getContainsCaseAt(int i, int j) const
 {
-    if (grid[i][j].isEmpty() == false) return grid[i][j].getAllContains();
-
-    return std::vector<Displayable*>();
+   return grid[i][j].getAllContains();
 }
 
 Portal* Level::getPortal() const
@@ -472,13 +411,16 @@ void Level::genereLevel()
     
     for (int i = 0; i < Level::grid_size; ++i)
     {
-        this->set_platform(i, 0); // TOP BORDER
-        this->set_platform(i, Level::grid_size-1);  //BOTTOM BORDER
+      //  this->set_platform(i, 0); // TOP BORDER
+       // this->set_platform(i, Level::grid_size-1);  //BOTTOM BORDER
         //this->set_platform(0, i, 90.0f); // LEFT BORDER
     }
     
-    //this->set_platform(0, 0, 90.0f);
-    this->set_platform(0, 1); this->set_platform(0, 3); this->set_platform(0, 4); this->set_platform(0, 6);
+    this->set_obstacle(1, 0, true);
+
+    this->SetPlatform(0, 1);
+//    this->SetPlatform(0, 1);
+   /* this->set_platform(0, 1); this->set_platform(0, 3); this->set_platform(0, 4); this->set_platform(0, 6);
     this->set_platform(1, 2); this->set_platform(1, 3); this->set_platform(1, 5);
     this->set_platform(2, 1); this->set_platform(2, 3); this->set_platform(2, 4); this->set_platform(2, 6);
     this->set_platform(3, 2); this->set_platform(3, 4);  this->set_platform(3, 5);
@@ -486,12 +428,30 @@ void Level::genereLevel()
     this->set_platform(5, 1); this->set_platform(5, 6);
     this->set_platform(6, 1); this->set_platform(6, 2); this->set_platform(6, 3); this->set_platform(6, 4); this->set_platform(6, 6);
     this->set_platform(7, 4); this->set_platform(7, 6);
-
-    this->set_obstacle(1, 0,true);
+    */
+    
     this->SetPortal(5, 5);
+
+    buildListDisplayable();
    
 }
 
+void Level::buildListDisplayable()
+{
+    for (int i = 0; i < this->n; ++i)
+    {
+        for (int j = 0; j < this->m; ++j)
+        {
+            if (this->at(i, j).isEmpty() == false)
+            {
+                for (int h = 0; h < this->at(i, j).getAllContains().size(); ++h)
+                {
+                    m_listDisplayable.push_back(this->at(i, j).getAllContains()[h]);
+                }
+            }
+        }
+    }
+}
 bool Contains(std::vector<std::pair<Case, Level::Direction>> list, std::pair<Case, Level::Direction> element)
 {
     for (int i = 0; i < list.size(); ++i)

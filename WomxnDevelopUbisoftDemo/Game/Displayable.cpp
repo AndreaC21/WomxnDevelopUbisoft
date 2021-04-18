@@ -102,14 +102,14 @@ void Displayable::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	// DrawBounding box
 	
-	/*
+	
 	sf::RectangleShape m_Rectangle;
 	m_Rectangle.setPosition(m_BoundingBox.left, m_BoundingBox.top);
 	m_Rectangle.setSize(sf::Vector2f(m_BoundingBox.width, m_BoundingBox.height));
 	m_Rectangle.setOutlineThickness(3);
 	m_Rectangle.setOutlineColor(sf::Color{ static_cast<uint8_t>(1 * 255.0f), static_cast<uint8_t>(0 * 255.0f), static_cast<uint8_t>(0 * 255.0f) });
 	target.draw(m_Rectangle);
-	*/
+	
 
 	target.draw(m_Sprite);
 	

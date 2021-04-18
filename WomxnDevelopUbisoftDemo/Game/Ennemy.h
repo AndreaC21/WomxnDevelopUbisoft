@@ -1,13 +1,13 @@
 #pragma once
 #include "Displayable.h"
 
+class Player;
 
 class Ennemy : public Displayable
 {
 public:
 	
-	Ennemy(sf::Vector2f position);
-	Ennemy(int x, int y, int case_size_x, int case_size_y, Displayable*);
+	Ennemy(int x, int y, int case_size_x, int case_size_y, Player*);
 	Ennemy(const Ennemy&);
 
 	virtual void Update(float deltaTime);
@@ -27,7 +27,7 @@ public:
 	int getSpawnedColumns() const;
 	int getSpawnedRow() const;
 
-	Displayable* m_ptr_Player;
+	Player* m_ptr_Player;
 	
 private:
 

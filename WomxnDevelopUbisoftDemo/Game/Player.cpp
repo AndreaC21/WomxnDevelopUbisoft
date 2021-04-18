@@ -9,27 +9,16 @@ Player::Player(const Player& p) : Displayable(p)
 {
     m_Velocity = p.m_Velocity;
     m_Sprite.setScale(0.3f, 0.3f);
-    m_GhostMode = p.m_GhostMode;
     m_BlockDirection = p.m_BlockDirection;
     this->m_CurrentState = p.m_CurrentState;
     m_Position = p.m_Position;
    
     SetBoundingBox(m_Sprite.getGlobalBounds());
 }
-Player::Player() : Displayable(sf::Vector2f(100,150), "Player\\Idle_1.png")
+Player::Player()
 {
-    const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
+    this->m_CurrentState = new Explorator(sf::Vector2f(100,100));
 
-    m_Sprite_Scale = 0.3f;
-    m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
-   // m_Sprite.setOrigin(size *0.5f); // middle
-  
-    //left,top
-    SetBoundingBox(m_Position.x,m_Position.y,size.x*m_Sprite_Scale,size.y*m_Sprite_Scale);
-
-    this->m_CurrentState = new Explorator(m_Position);
-
-  
 }
 Player::Player(sf::Vector2f p, const char* s) : Displayable(p, s)
 {
@@ -43,6 +32,7 @@ Player::Player(sf::Vector2f p, const char* s) : Displayable(p, s)
     m_BlockDirection = new bool[4]{ false,false,false,false};
    
     SetBoundingBox(m_Sprite.getGlobalBounds());
+
 }
 void Player::Update(float deltaTime)
 {
@@ -60,69 +50,57 @@ void Player::Update(float deltaTime)
 
     m_Position = this->m_CurrentState->getPosition();
   
-    /*if (m_IsUsingJoystick)
-    {
-        m_Velocity.x = GetScaledAxis(m_JoystickIndex, Joystick::Axis::X, DEAD_ZONE, SPEED_MAX);
-        m_Velocity.y = GetScaledAxis(m_JoystickIndex, Joystick::Axis::Y, DEAD_ZONE, SPEED_MAX);
+}
+void Player::UpdateCollisionWithDisplayable(std::vector<Displayable*> listDisplayable)
+{
+    //ResetCollision
+    this->m_CurrentState->m_BlockDirection = new bool[4]{ false,false,false,false };
 
-        if (Joystick::isButtonPressed(m_JoystickIndex, 0))
+    for (int i = 0; i < listDisplayable.size(); ++i)
+    {
+        if (this->m_CurrentState->IsColliding(*listDisplayable[i]))
         {
-            if (!m_WasButtonPressed)
-            {
-                m_Sprite.setScale(0.8f, 0.8f);
-                m_WasButtonPressed = true;
-            }
+            this->m_CurrentState->AdjustPosition(listDisplayable[i]);
         }
-        else
+
+        if (isGhostMode() == false)
         {
-            if (m_WasButtonPressed)
-            {
-                m_Sprite.setScale(1.0f, 1.0f);
-                m_WasButtonPressed = false;
-            }
+            Explorator* e = dynamic_cast <Explorator*>(m_CurrentState);
+            e->CheckWeaponCollisionWithDisplayable(listDisplayable[i]);
         }
     }
-    */
- 
+}
+void Player::UpdateWeaponCollisionWith(std::vector<Ennemy>& listEnnemy)
+{
+
+    if (isGhostMode() == true)
+    {
+        return;
+    }
+    Explorator* e = dynamic_cast <Explorator*>(m_CurrentState);
+    for (int i = 0; i < listEnnemy.size(); ++i)
+    {
+        e->CheckWeaponCollisionWithEnnemy(listEnnemy[i]);
+    }
 }
 
-int Player::AdjustPosition(Displayable* d)
-{
-   return this->m_CurrentState->AdjustPosition(d);
-}
+
 void Player::setCollision(int collision)
 {
-    if (collision == 0 || collision == 1)
+    m_BlockDirection[collision] = true;
+    
+    if (collision == eDirection::Top || collision == eDirection::Bottom)
     {
         m_Velocity.y = 0;
-        m_BlockDirection[0] = false;
-        m_BlockDirection[1] = false;
-
-        m_BlockDirection[collision] = true;
+     
     }
-    else if (collision == 2 || collision == 3)
+    else if (collision == eDirection::Left || collision == eDirection::Right)
     {
         m_Velocity.x = 0;
-        m_BlockDirection[2] = false;
-        m_BlockDirection[3] = false;
+    
+    }
+}
 
-        m_BlockDirection[collision] = true;
-    }
-}
-void Player::NoCollisionDetected(int noCollision) //0 ou 2
-{
-    if (noCollision == 0 || noCollision == 1)
-    {
-        m_BlockDirection[0] = false;
-        m_BlockDirection[1] = false;
-    }
-    if (noCollision == 2 || noCollision == 3)
-    {
-        m_BlockDirection[2] = false;
-        m_BlockDirection[3] = false;
-    }
-   
-}
 void Player::Switch()
 {
     if (typeid(*this->m_CurrentState) == typeid(Explorator))
@@ -173,7 +151,7 @@ void Player::FlipSprite(bool directionRight)
 
 Ghost::Ghost(sf::Vector2f p) : Player(p, "Ghost\\Idle_1.png")
 {
-    //m_GhostMode = true;
+    SPEED_MAX = 400.0f;
     m_Duration = 5.0f;
 }
 Ghost::Ghost(const Ghost& g) : Player(g)
@@ -183,38 +161,35 @@ Ghost::Ghost(const Ghost& g) : Player(g)
 
 void Ghost::Update(float deltaTime)
 {
-    const float SPEED_MAX = 400.0f;
-    const float SPEED_INC = 15.0f;
-    const float SLOWDOWN_RATE = 0.9f;
-
-    if (Keyboard::isKeyPressed(Keyboard::Right) && m_BlockDirection[3] == false)
+ 
+    if (Keyboard::isKeyPressed(Keyboard::Right) && m_BlockDirection[eDirection::Right] == false)
     {
-        m_Velocity.x = fmin(m_Velocity.x + SPEED_INC, SPEED_MAX);
+        m_Velocity.x = SPEED_MAX;
         FlipSprite(true);
     }
-    else if (Keyboard::isKeyPressed(Keyboard::Left) && m_BlockDirection[2] == false)
+    else if (Keyboard::isKeyPressed(Keyboard::Left) && m_BlockDirection[eDirection::Left] == false)
     {
-        m_Velocity.x = fmax(m_Velocity.x - SPEED_INC, -SPEED_MAX);
+        m_Velocity.x = -SPEED_MAX;
         FlipSprite(false);
     }
     else
     {
-        m_Velocity.x *= SLOWDOWN_RATE;
+        m_Velocity.x *= 0;
     }
 
-    if (Keyboard::isKeyPressed(Keyboard::Down) && m_BlockDirection[1]==false)
+    if (Keyboard::isKeyPressed(Keyboard::Down) && m_BlockDirection[eDirection::Bottom]==false)
     {
-        m_Velocity.y = fmin(m_Velocity.y + SPEED_INC, SPEED_MAX);
+        m_Velocity.y = SPEED_MAX;
 
     }
-    else if (Keyboard::isKeyPressed(Keyboard::Up) && m_BlockDirection[0] == false)
+    else if (Keyboard::isKeyPressed(Keyboard::Up) && m_BlockDirection[eDirection::Top] == false)
     {
-        m_Velocity.y = fmax(m_Velocity.y - SPEED_INC, -SPEED_MAX);
+        m_Velocity.y = SPEED_MAX;
 
     }
     else
     {
-        m_Velocity.y *= SLOWDOWN_RATE;
+        m_Velocity.y *= 0;
     }
 
     m_Position += m_Velocity * deltaTime;
@@ -226,32 +201,16 @@ int Ghost::AdjustPosition(Displayable* d)
 {
     if (typeid(*d) == typeid(Obstacle))
     {
-        Obstacle* o = static_cast <Obstacle*>(d);
+        Obstacle* o = dynamic_cast <Obstacle*>(d);
         if (o->canGhostTraverse()) return -1;
-
     }
 
-    int index_collision = this->collisionUpDown(*d);
+    int index_collision = this->CollisionDirection(*d);
     if (index_collision != -1)
     {
         setCollision(index_collision);
     }
-    else
-    {
-        NoCollisionDetected(0);
-    }
-
-    index_collision = this->collisionLeftRight(*d);
-    if (index_collision != -1)
-    {
-        setCollision(index_collision);
-    }
-    else
-    {
-        NoCollisionDetected(2);
-    }
-
-    return 0;
+    return index_collision;
 }
 
 #pragma endregion
@@ -266,8 +225,7 @@ Explorator::Explorator(sf::Vector2f p) : Player(p, "Player\\Idle_1.png")
     m_currentThrowableWeapon = 0;
     m_DurationShoot = 0.1f;
     m_TimePreviousShoot = 0.0f;
-
-    m_CanShoot = true;
+    SPEED_MAX = 300;
     m_IsDead = false;
 
 }
@@ -280,49 +238,47 @@ Explorator::Explorator(const Explorator& p) : Player(p)
 }
 void Explorator::Update(float deltaTime)
 {
-    const float SPEED_MAX = 300.0f;
+    
     const float SPEED_INC = 10.0f;
-    const float SLOWDOWN_RATE = 0.9f;
-    const float JUMP_MAX = 600.0f;
-
-    if (isGrounded()==false)
+   
+    if (isGrounded()==false || m_BlockDirection[eDirection::Top]==true)
     {
+        //Fall
         m_Velocity.y = fmin(m_Velocity.y + SPEED_INC, JUMP_MAX);
-        //m_Velocity.y *= SLOWDOWN_RATE;
     }
 
-    if (Keyboard::isKeyPressed(Keyboard::Right)&& m_BlockDirection[3]==false)
+    if (Keyboard::isKeyPressed(Keyboard::Right)&& m_BlockDirection[eDirection::Right]==false)
     {
-        m_Velocity.x = fmin(m_Velocity.x + SPEED_INC, SPEED_MAX);
-        
+        m_Velocity.x = SPEED_MAX;      
         FlipSprite(true);
     }
-    else if (Keyboard::isKeyPressed(Keyboard::Left) &&m_BlockDirection[2]==false)
+    else if (Keyboard::isKeyPressed(Keyboard::Left) && m_BlockDirection[eDirection::Left]==false)
     {
-        m_Velocity.x = fmax(m_Velocity.x - SPEED_INC, -SPEED_MAX);
+        m_Velocity.x = -SPEED_MAX;
         FlipSprite(false);
-
     }
     else
     {
-        m_Velocity.x *= SLOWDOWN_RATE;
+        m_Velocity.x *= 0;
     }
     if (Keyboard::isKeyPressed(Keyboard::Space) && isGrounded())
     {
         m_Velocity.y = -JUMP_MAX;
     }
 
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_CanShoot )
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && isShootAvailable() )
     {
         if (m_currentThrowableWeapon < m_maxThrowableWeapon)
         {
-            m_TimePreviousShoot = clock.asSeconds();
+            m_TimePreviousShoot = m_clock.getElapsedTime().asSeconds();
             m_currentThrowableWeapon++;
-            m_CanShoot = false;
-            m_listWeapon.push_back(Weapon(GetCenter(), true, m_TimePreviousShoot));
+           
+            bool direction = m_Sprite.getScale().x >0; 
+            m_listWeapon.push_back(Weapon(GetCenter(), direction, m_TimePreviousShoot));
         }
     }
 
+    
     for (int i = 0; i < (int)m_listWeapon.size(); ++i)
     {
         m_listWeapon[i].Update(deltaTime);
@@ -337,28 +293,35 @@ void Explorator::Update(float deltaTime)
     m_Sprite.setPosition(m_Position);
     SetBoundingBox(m_Sprite.getGlobalBounds());
 }
-void Explorator::UpdateWeapon(Displayable* d)
+
+bool Explorator::isShootAvailable() const
+{
+    if (m_clock.getElapsedTime().asSeconds() > this->m_TimePreviousShoot + this->m_DurationShoot)
+    {
+        return true;
+    }
+    return false;
+}
+void Explorator::CheckWeaponCollisionWithDisplayable(Displayable* d)
 {
     for (int j = 0; j < m_listWeapon.size(); ++j)
     {
         if (m_listWeapon[j].IsColliding(*d))
         {
-            WeaponTouch(j, d);
+            m_listWeapon[j].TouchDisplayable(d);
         }
     }
 }
-void Explorator::UpdateWeapon(Ennemy& e)
+void Explorator::CheckWeaponCollisionWithEnnemy(Ennemy& e)
 {
     for (int j = 0; j < m_listWeapon.size(); ++j)
     {
         if (m_listWeapon[j].IsColliding(e))
         {
-            WeaponTouch(j, e);
+            m_listWeapon[j].TouchEnnemy(e);
         }
     }
 }
-
-
 int Explorator::AdjustPosition(Displayable* d)
 {
     if (typeid(*d) == typeid(Portal))
@@ -366,26 +329,11 @@ int Explorator::AdjustPosition(Displayable* d)
         return -1;
     }
 
-    int index_collision = this->collisionUpDown(*d);
+    int index_collision = this->CollisionDirection(*d);
     if (index_collision != -1)
     {
         setCollision(index_collision);
     }
-    else
-    {
-        NoCollisionDetected(0);
-    }
-
-    index_collision = this->collisionLeftRight(*d);
-    if (index_collision != -1)
-    {
-        setCollision(index_collision);
-    }
-    else
-    {
-        NoCollisionDetected(2);
-    }
-
     return index_collision;
 }
 
@@ -400,46 +348,19 @@ float Explorator::getCurrentLifePoint() const
 void Explorator::loseLifePoint(float amount)
 {
     this->m_lifePoint -= amount;
-
-    if (this->m_lifePoint <= 0.0f)
-    {
-        m_IsDead = true;
-    }
-}
-std::vector<Weapon> Explorator::getWeapon() const
-{
-    return this->m_listWeapon;
-}
-void Explorator::UpdateShoot(sf::Time currentTime)
-{
-    clock = currentTime;
-    if (currentTime.asSeconds() > this->m_TimePreviousShoot + this->m_DurationShoot)
-    {
-        m_CanShoot = true;
-    }
-    else
-    {
-        m_CanShoot = false;
-    }
 }
 
-bool Explorator::WeaponTouch(int index_weapon, Displayable* d)
+std::vector<Weapon> Explorator::getWeapons()
 {
-    return m_listWeapon[index_weapon].TouchDisplayable(d);
+    return m_listWeapon;
 }
-
-bool Explorator::WeaponTouch(int index_weapon, Ennemy& e)
-{
-    return m_listWeapon[index_weapon].TouchEnnemy(e);
-}
-
 bool Explorator::isGrounded() const
 {
-    return this->m_BlockDirection[1] == true;
+    return this->m_BlockDirection[eDirection::Bottom] == true;
 }
 bool Explorator::isDead() const
 {
-    return this->m_IsDead;
+    return this->m_lifePoint <= 0.0f;
 }
 
 

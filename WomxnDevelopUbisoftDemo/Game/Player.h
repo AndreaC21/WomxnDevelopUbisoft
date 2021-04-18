@@ -16,24 +16,28 @@ public:
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
 
-	void NoCollisionDetected(int);
 	bool isGhostMode();
 	void Switch();
-	virtual int AdjustPosition(Displayable* d);
-	void setCollision(int  collision);
+	virtual int AdjustPosition(Displayable* d) { return 0; }
+	void setCollision(int collision);
+
+	void UpdateCollisionWithDisplayable(std::vector<Displayable*>);
+	void UpdateWeaponCollisionWith(std::vector<Ennemy>& listEnnemy);
 
 	Player* getCurrentState();
 	bool* m_BlockDirection;
+	sf::Vector2f m_Velocity;
 	
 protected:
-
-	sf::Vector2f m_Velocity;
-	bool m_GhostMode;
-	sf::Time clock;
-	Player* m_CurrentState;
+	float SPEED_MAX;
+	
 
 	void FlipSprite(bool);
 
+private:
+
+	Player* m_CurrentState;
+	
 };
 
 class Ghost : public Player
@@ -59,25 +63,27 @@ public:
 	Explorator(const Explorator&);
 
 	virtual void Update(float deltaTime);
-	void UpdateWeapon(Displayable* d);
-	void UpdateWeapon(Ennemy& e);
+	
 	virtual int AdjustPosition(Displayable* d);
+	void CheckWeaponCollisionWithDisplayable(Displayable*);
+	void CheckWeaponCollisionWithEnnemy(Ennemy&);
 
-	std::vector<Weapon> getWeapon() const;
-	void UpdateShoot(sf::Time t);
-	bool WeaponTouch(int index_weapon, Displayable* d);
-	bool WeaponTouch(int index_weapon, Ennemy& e);
 	bool isGrounded() const;
 	bool isDead() const;
 	std::string getLifePoint() const;
 	float getCurrentLifePoint() const;
 	void loseLifePoint(float amount);
+	std::vector<Weapon> getWeapons();
 
 
 private:
-	bool m_CanShoot,m_IsDead;
+	const float JUMP_MAX = 600.0f;
+	bool m_IsDead;
 	float m_lifePoint_max, m_lifePoint, m_attack, m_TimePreviousShoot, m_DurationShoot;
 	std::vector<Weapon> m_listWeapon;
 	int m_currentThrowableWeapon, m_maxThrowableWeapon;
+	sf::Clock m_clock;
+
+	bool isShootAvailable() const;
 
 };

@@ -3,10 +3,13 @@
 #include <Game/Player.h>
 
 
-
-
-Ennemy::Ennemy(sf::Vector2f position) : Displayable(position, "Ennemy\\Idle_1.png")
+Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Displayable(sf::Vector2f(static_cast<float>(x * case_size_x + (case_size_x / 2)), static_cast<float>(y)), "Ennemy\\Idle_1.png")
 {
+	m_radius = 2;
+	m_RadiusDetection = m_radius * case_size_y;
+	m_Column = y;
+	m_Row = x;
+
 	m_Direction = true;
 	m_attack = 25.0f;
 	m_lifePoint_max = 200.0f;
@@ -14,24 +17,17 @@ Ennemy::Ennemy(sf::Vector2f position) : Displayable(position, "Ennemy\\Idle_1.pn
 	m_ToDestroy = false;
 	m_OnGround = false;
 	m_TimePreviousAttack = 0.0f;
-	m_DurationAttack = 5.0f;
-	
+	m_DurationAttack = 2.0f;
+
 	m_Sprite_Scale = 0.4f;
 	m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
 
 	const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
 	SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
 
-	clock.restart();
-}
-Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y,Displayable*p) : Ennemy(sf::Vector2f(static_cast<float>(x * case_size_x + (case_size_x / 2)), static_cast<float>(y)))
-{
-	m_radius = 2;
-	m_RadiusDetection = m_radius * case_size_y;
-	m_Column = y;
-	m_Row = x;
-
 	m_ptr_Player = p;
+
+	clock.restart();
 }
 Ennemy::Ennemy(const Ennemy& e) : Displayable(e)
 {
@@ -65,7 +61,7 @@ void Ennemy::Update(float deltaTime)
 	{
 		m_Velocity.x = MoveTo(m_ptr_Player->getPosition(),SPEED_MAX).x;
 
-		if (IsColliding(*m_ptr_Player))
+		if (IsColliding(*m_ptr_Player->getCurrentState()))
 		{
 			m_Velocity = sf::Vector2f(0.0f, 0.0f);
 			AttackPlayer();
@@ -126,26 +122,18 @@ bool Ennemy::Dead() const
 
 bool Ennemy::SeePlayer() const
 {
-	if (typeid(*m_ptr_Player) == typeid(Player))
-	{
-		Player* p = static_cast<Player*>(m_ptr_Player);
-		if (p->isGhostMode()) return false;
-	}
+	if (m_ptr_Player->isGhostMode()) return false;
 
 	return (getPosition().x - m_RadiusDetection < m_ptr_Player->getPosition().x)
 		&& (m_ptr_Player->getPosition().x < getPosition().x + m_RadiusDetection);
 }
 void Ennemy::AttackPlayer()
 {
-	if (typeid(*m_ptr_Player) == typeid(Player) && CanAttack())
+	if (CanAttack() && m_ptr_Player->isGhostMode() == false)
 	{
-		Player* p = static_cast<Player*>(m_ptr_Player);
-		if (p->isGhostMode() == false)
-		{
-			Explorator* e = static_cast<Explorator*>(p->getCurrentState());
-			e->loseLifePoint(m_attack);
-			this->m_TimePreviousAttack = clock.getElapsedTime().asSeconds();
-		}
+		Explorator* e = static_cast<Explorator*>(m_ptr_Player->getCurrentState());
+		e->loseLifePoint(m_attack);
+		this->m_TimePreviousAttack = clock.getElapsedTime().asSeconds();
 	}
 }
 

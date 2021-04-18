@@ -26,7 +26,8 @@ public:
     void addObstacle(Obstacle o);
     void addDisplayable(Displayable* d);
   
-    std::vector<Displayable*> getAllContains();
+    std::vector<Displayable*> getAllContains() const;
+    std::vector<Platform> getAllPlatform() const;
     bool isEmpty() const;
 
     bool hasObstacle(Platform::Position direction) ;
@@ -57,7 +58,6 @@ class Level
 public:
     Level();
     Level(const Level&);
-    Level(int i, int j);
     ~Level();
 
     static int grid_size;
@@ -65,14 +65,17 @@ public:
     Case at(int i, int j) const;
 
     void set(int i, int j, Displayable d) const;
-    void set_platform(int i, int j, float rotation=0.0f) const;
+    void SetPlatform(int i, int j, float rotation=0.0f) const;
     void set_obstacle(int i, int j, bool) const;
     void SetPortal(int i, int j);
     std::vector<Displayable*> getContainsCaseAt(int i, int j) const;
+    std::vector<Displayable*> GetAllDisplayable() const;
     int getSize_n() const;
     int getSize_m() const;
     Portal* getPortal() const;
     std::vector<Platform*> getColumnsPlatform(int column,int rowToBegin);
+
+    void buildListDisplayable();
 
     struct Direction {
         int x, y;
@@ -100,6 +103,7 @@ private:
     Case** grid;
     int n,m;
     Portal* m_Portal;
+    std::vector<Displayable*> m_listDisplayable;
     std::vector<std::pair<Case,Direction>> open, closed;
     std::vector<Case> resultJumpPointSearch;
 
@@ -127,18 +131,13 @@ public:
     bool isGameFinish();
     void StartEndGameSuccess();
     void StartEndGameFail();
-
-    //static Player* getPlayer();
+    void UpdateEnnemy(float deltatime);
 
 private:
-
-    void buildListPlatform();
 
     static int max_size_x, max_size_y;
     Player m_Player;
     std::vector<Ennemy> m_listEnnemy;
-    std::vector<Platform> list_platform;
-    std::vector<Displayable*> list_displayable;
     Displayable m_Background;
     sf::View m_View;
     bool m_IsFinished;

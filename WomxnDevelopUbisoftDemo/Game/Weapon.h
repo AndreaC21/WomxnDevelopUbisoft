@@ -18,8 +18,6 @@ public:
 	bool TouchDisplayable(Displayable* d);
 	bool TouchEnnemy(Ennemy& e);
 
-	bool test_bool;
-
 //private:
 	float m_force,m_duration,m_TimeStart,m_TimeEnd;
 	sf::Clock clock;

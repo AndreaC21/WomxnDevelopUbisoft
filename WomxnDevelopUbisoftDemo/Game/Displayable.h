@@ -18,11 +18,11 @@ public:
 	void StartEndGame() ;
 
 	sf::Vector2f getPosition() const;
-
+	
 protected:
-	sf::Texture m_Texture;
-	sf::Sprite m_Sprite;
 
+	sf::Texture m_Texture;
+	sf::Sprite m_Sprite;	
 	sf::Vector2f m_Position;
 	float m_Sprite_Scale = 0.3f;
 	float m_rotation = 0;

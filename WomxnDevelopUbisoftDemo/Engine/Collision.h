@@ -1,5 +1,14 @@
 #pragma once
 
+enum eDirection
+{
+    Top = 0,
+    Bottom = 1,
+    Left = 2,
+    Right = 3
+
+};
+
 class BoxCollideable
 {
 
@@ -9,6 +18,15 @@ public:
     inline const bool IsColliding(const BoxCollideable& other) const 
     { 
         return m_BoundingBox.intersects(other.GetBoundingBox());
+    }
+    inline const bool IsColliding(const std::vector<BoxCollideable> others) const
+    {
+        for (int i = 0; i < (int)others.capacity(); ++i)
+        {
+            if (IsColliding(others[i]))
+                return true;
+        }
+        return false;
     }
     inline const bool Contains(float x, float y) const { return m_BoundingBox.contains(x, y); }
     inline const bool Contains(const sf::Vector2f& pos) const { return m_BoundingBox.contains(pos); }
@@ -23,7 +41,6 @@ public:
         return sf::Vector2f(m_BoundingBox.left + (m_BoundingBox.width / 2.0f), m_BoundingBox.top + (m_BoundingBox.height / 2.0f));
     }
 
-    // 0 -> up,1->down,2->left,3->right
     inline const int collisionLeftRight(const BoxCollideable& otherCollider) const
     {
         sf::FloatRect other = otherCollider.GetBoundingBox();
@@ -32,11 +49,11 @@ public:
           //  (other.top < (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) < (other.top + other.height)))
         {
             //LEFT
-            if (other.left < m_BoundingBox.left && m_BoundingBox.left < (other.left + other.width) )
-                return 2;
+            if (other.left < m_BoundingBox.left && m_BoundingBox.left <= (other.left + other.width))
+                return eDirection::Left;
             //Right
-            if (other.left < (m_BoundingBox.left + m_BoundingBox.width)  && (m_BoundingBox.left + m_BoundingBox.width) <(other.left + other.width))
-                return 3;
+            if ( other.left <= (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) <= (other.left+other.width))
+                return eDirection::Right;
         }
 
         return -1; 
@@ -49,12 +66,28 @@ public:
             (other.left < (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) < (other.left + other.width)))
         {
             // TOP
-            if (m_BoundingBox.top <= (other.top + other.height) && m_BoundingBox.top > other.top)
-                return 0;
+            if (other.top <= m_BoundingBox.top && m_BoundingBox.top <= (other.top + other.height))
+                return eDirection::Top;
             // DOWN
-            if ((m_BoundingBox.top + m_BoundingBox.height) >= other.top && (m_BoundingBox.top + m_BoundingBox.height) <= (other.top + other.height))
-                return 1;
+            if (other.top <= (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) <= (other.top+other.height))
+                return eDirection::Bottom;
         }
+        return -1;
+    }
+
+    inline const int CollisionDirection(const BoxCollideable& otherCollider)
+    {
+        sf::FloatRect other = otherCollider.GetBoundingBox();
+
+        if ((other.top +(other.height*0.9f))<= m_BoundingBox.top && m_BoundingBox.top <= (other.top + other.height))
+            return eDirection::Top;
+        if (other.top <= (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) <= (other.top + other.height * 0.1f))
+            return eDirection::Bottom;
+        if ((other.left + other.width * 0.9f) < m_BoundingBox.left && m_BoundingBox.left <= (other.left + other.width))
+            return eDirection::Left;
+        if (other.left <= (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) <= (other.left + other.width * 0.1f))
+            return eDirection::Right;
+
         return -1;
     }
 
