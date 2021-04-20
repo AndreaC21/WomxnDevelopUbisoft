@@ -79,13 +79,13 @@ public:
     {
         sf::FloatRect other = otherCollider.GetBoundingBox();
 
-        if ((other.top +(other.height*0.9f))<= m_BoundingBox.top && m_BoundingBox.top <= (other.top + other.height))
+        if ((other.top +(other.height*0.5f))<= m_BoundingBox.top && m_BoundingBox.top <= (other.top + other.height))
             return eDirection::Top;
-        if (other.top <= (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) <= (other.top + other.height * 0.1f))
+        if (other.top <= (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) <= (other.top + other.height * 0.5f))
             return eDirection::Bottom;
-        if ((other.left + other.width * 0.9f) < m_BoundingBox.left && m_BoundingBox.left <= (other.left + other.width))
+        if ((other.left + other.width * 0.5f) < m_BoundingBox.left && m_BoundingBox.left <= (other.left + other.width))
             return eDirection::Left;
-        if (other.left <= (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) <= (other.left + other.width * 0.1f))
+        if (other.left <= (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) <= (other.left + other.width * 0.5f))
             return eDirection::Right;
 
         return -1;

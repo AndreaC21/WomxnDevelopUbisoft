@@ -22,8 +22,7 @@ m_level()
 void GameLevel::Update(float deltaTime)
 {
     if (isGameFinish()==false)
-    {
-      
+    { 
         m_Player.UpdateCollisionWithDisplayable(m_level.GetAllDisplayable());
         m_Player.UpdateWeaponCollisionWith(m_listEnnemy);
         m_Player.Update(deltaTime);
@@ -81,7 +80,7 @@ void GameLevel::Render(sf::RenderTarget& target)
     target.clear(sf::Color(0, 0, 0));
     target.draw(m_Background);
 
-    target.draw(*m_Player.getCurrentState());
+    target.draw(m_Player);
     
     for (int i = 0; i < m_level.GetAllDisplayable().size(); ++i)
     {
@@ -89,11 +88,9 @@ void GameLevel::Render(sf::RenderTarget& target)
     }
     if (m_Player.isGhostMode() == false)
     {
-        Explorator* e = dynamic_cast <Explorator*>(m_Player.getCurrentState());
-
-        for (int i = 0; i < e->getWeapons().size(); ++i)
+        for (int i = 0; i < m_Player.getWeapons().size(); ++i)
         {
-            target.draw(e->getWeapons()[i]);
+            target.draw(m_Player.getWeapons()[i]);
         }
     }
     
@@ -116,20 +113,15 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
 
     if (ImGui::CollapsingHeader("Collision"))
     {
-        ImGui::Text("Block: top: %d - bottom: %d - left: %d - right: %d", m_Player.getCurrentState()->m_BlockDirection[0], m_Player.getCurrentState()->m_BlockDirection[1], m_Player.getCurrentState()->m_BlockDirection[2], m_Player.getCurrentState()->m_BlockDirection[3]);
-     
-
+        ImGui::Text("top: %d"+m_Player.getBlockDirection());
     }
     if (ImGui::CollapsingHeader("Weapon"))
     {
-        Explorator* e = dynamic_cast <Explorator*>(m_Player.getCurrentState());
-        ImGui::Text("%d ", (int)e->getWeapons().size());
-   
+        ImGui::Text("%d ", (int)m_Player.getWeapons().size()); 
     }
     if (ImGui::CollapsingHeader("Player"))
     {
-        Explorator* e = dynamic_cast <Explorator*>(m_Player.getCurrentState());
-        ImGui::Text("%s",e->getLifePoint().c_str());
+       ImGui::Text("%s", m_Player.getLifePoint().c_str());
     }
     ImGui::End();
 }
@@ -152,15 +144,14 @@ bool GameLevel::isGameFinish()
 {
     if (m_Player.isGhostMode() == false)
     {
-        if (m_Player.getCurrentState()->IsColliding(*m_level.getPortal()))
+        if (m_Player.IsColliding(*m_level.getPortal()))
         {
             m_PlayerSucceed = true;
             m_IsFinished = true;
 
             return true;
         }
-        Explorator* e = static_cast<Explorator*>(m_Player.getCurrentState());
-        if (e->isDead())
+        else if (m_Player.isDead())
         {
             m_PlayerSucceed = false;
             m_IsFinished = true;
@@ -400,6 +391,7 @@ void Level::genereLevel()
         this->SetPlatform(i, 0); // TOP BORDER
         this->SetPlatform(i, Level::grid_size-1);  //BOTTOM BORDER
         this->SetPlatform(0, i, 90.0f); // LEFT BORDER
+        this->SetPlatform(Level::grid_size-1, i, -90.0f); // RIGHT BORDER
     }
     
     this->SetObstacle(1, 0, true);

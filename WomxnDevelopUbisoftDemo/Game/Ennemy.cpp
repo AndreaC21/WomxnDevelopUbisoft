@@ -61,7 +61,7 @@ void Ennemy::Update(float deltaTime)
 	{
 		m_Velocity.x = MoveTo(m_ptr_Player->getPosition(),SPEED_MAX).x;
 
-		if (IsColliding(*m_ptr_Player->getCurrentState()))
+		if (IsColliding(*m_ptr_Player))
 		{
 			m_Velocity = sf::Vector2f(0.0f, 0.0f);
 			AttackPlayer();
@@ -131,8 +131,7 @@ void Ennemy::AttackPlayer()
 {
 	if (CanAttack() && m_ptr_Player->isGhostMode() == false)
 	{
-		Explorator* e = static_cast<Explorator*>(m_ptr_Player->getCurrentState());
-		e->loseLifePoint(m_attack);
+		m_ptr_Player->loseLifePoint(m_attack);
 		this->m_TimePreviousAttack = clock.getElapsedTime().asSeconds();
 	}
 }
