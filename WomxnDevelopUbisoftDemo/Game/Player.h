@@ -12,13 +12,14 @@ public:
 	Player();
 	Player(const Player&);
 
+	void Init(std::vector<Ennemy>& m_ptr_listEnnemy, const std::vector<Displayable*>&);
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
 
 	bool isGhostMode();
 
 	void UpdateCollisionWithDisplayable(std::vector<Displayable*>);
-	void UpdateWeaponCollisionWith(std::vector<Ennemy>& listEnnemy);
+	void UpdateWeaponCollisionWithEnnemy();
 
 	bool isGrounded() const;
 	bool isDead() const;
@@ -31,24 +32,25 @@ public:
 
 	bool getBlockDirection();
 
-	
-
 private:
 
 	bool* m_BlockDirection;
 	sf::Vector2f m_Velocity;
 	float m_SpeedMax;
+	std::vector<Ennemy> m_ptr_listEnnemy;
+	std::vector<Displayable*> m_ptr_listDisplayable;
 
+	//Explorator
 	bool m_IsDead;
 	float m_lifePoint_max, m_lifePoint, m_attack, m_TimePreviousShoot, m_DurationShoot;
 	std::vector<Weapon> m_listWeapon;
 	int m_currentThrowableWeapon, m_maxThrowableWeapon;
 	sf::Clock m_clock;
-
 	sf::Vector2f m_ExploratorDeadPosition;
 	float m_ExploratorSpeedMax;
 	float m_ExploratorJumpMax;
 
+	//Ghost
 	sf::Texture m_GhostTexture;
 	bool m_isGhost;
 	float m_GhostDuration;
@@ -59,6 +61,9 @@ private:
 	void Switch();
 	int AdjustPosition(Displayable* d);
 	void setCollision(int collision);
+	void UpdateCollision();
+	void UpdateGhostAction();
+	void UpdateExploratorAction(float deltaTime);
 	
 };	
 //600.0f;

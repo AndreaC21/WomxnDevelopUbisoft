@@ -14,6 +14,7 @@ m_level()
 {
     generateLevel();
     generateEnnemy();
+    m_Player.Init(m_listEnnemy, m_level.GetAllDisplayable());
     m_IsFinished = false;
     m_ExecuteEndGame = false;
     m_clock.restart();
@@ -23,8 +24,7 @@ void GameLevel::Update(float deltaTime)
 {
     if (isGameFinish()==false)
     { 
-        m_Player.UpdateCollisionWithDisplayable(m_level.GetAllDisplayable());
-        m_Player.UpdateWeaponCollisionWith(m_listEnnemy);
+      
         m_Player.Update(deltaTime);
         UpdateEnnemy(deltaTime);
   
@@ -68,10 +68,6 @@ void GameLevel::UpdateEnnemy(float deltaTime)
                     m_listEnnemy[i].StopFall();
                 }
             }
-        }
-        if (m_listEnnemy[i].Dead())
-        {
-            m_listEnnemy.erase(std::find(m_listEnnemy.begin(), m_listEnnemy.end(), m_listEnnemy[i]));
         }
     }
 }
@@ -118,6 +114,18 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     if (ImGui::CollapsingHeader("Weapon"))
     {
         ImGui::Text("%d ", (int)m_Player.getWeapons().size()); 
+
+        for (int j = 0; j < m_Player.getWeapons().size(); ++j)
+        {
+            if (m_Player.getWeapons()[j].IsColliding(m_listEnnemy[0]))
+            {
+                ImGui::Text("dino touch");
+            }
+        }
+        for (int j = 0; j <m_listEnnemy.size(); ++j)
+        {
+            ImGui::Text("ennemy %d : life: %s",j,m_listEnnemy[j].getLifePoint().c_str());
+        }
     }
     if (ImGui::CollapsingHeader("Player"))
     {
@@ -384,7 +392,6 @@ Portal* Level::getPortal() const
 void Level::genereLevel()
 {
     if (n <= 0 || m <= 0) return;
-
     
     for (int i = 0; i < Level::grid_size; ++i)
     {

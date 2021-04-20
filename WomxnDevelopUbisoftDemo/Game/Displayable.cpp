@@ -120,6 +120,10 @@ void Displayable::StartEndGame()
 {
 
 }
+bool Displayable::ToDestroy()
+{
+	return false;
+}
 sf::Vector2f Displayable::getPosition() const
 {
 	return this->m_Position;

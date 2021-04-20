@@ -12,6 +12,7 @@ public:
 
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
+	virtual bool ToDestroy();
 
 	
 	std::string getLifePoint() const;
@@ -19,7 +20,6 @@ public:
 	void lostLifePoint(float amount);
 
 	bool SeePlayer() const;
-	bool Dead() const;
 	bool isGrounded() const;
 	void Fall();
 	void StopFall();
@@ -46,7 +46,7 @@ private:
 public:
 	bool operator==(const Ennemy& e)
 	{
-		return (this->m_Position == e.m_Position && this->Dead() == e.Dead());
+		return (this->m_Position == e.m_Position && this->m_lifePoint == e.m_lifePoint);
 	}
 	
 };

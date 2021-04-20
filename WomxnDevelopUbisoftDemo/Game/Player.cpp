@@ -46,6 +46,12 @@ Player::Player() : Displayable(sf::Vector2f(100, 100), "Player\\Idle_1.png")
     m_BlockDirection = new bool[4]{ false,false,false,false };
 }
 
+void Player::Init(std::vector<Ennemy>& ptr_listEnnemy, const std::vector<Displayable*>& ptrDisplayable)
+{
+    m_ptr_listEnnemy = ptr_listEnnemy;
+    m_ptr_listDisplayable = ptrDisplayable;
+}
+
 void Player::Update(float deltaTime)
 {
     if (m_IsPlayingEndGame)
@@ -53,14 +59,10 @@ void Player::Update(float deltaTime)
         return;
     }
 
-    
-
     if (Keyboard::isKeyPressed(Keyboard::G))
     {
         Switch();
     }
-
-    
 
     if (Keyboard::isKeyPressed(Keyboard::Right) && m_BlockDirection[eDirection::Right] == false)
     {
@@ -77,63 +79,26 @@ void Player::Update(float deltaTime)
         m_Velocity.x *= 0;
     }
 
-    
-
     if (isGhostMode() == false)
     {
-        if (isGrounded() == false || m_BlockDirection[eDirection::Top] == true)
-        {
-            //Fall
-            m_Velocity.y = fmin(m_Velocity.y + 10, m_ExploratorJumpMax);
-        }
-        if (Keyboard::isKeyPressed(Keyboard::Space) && isGrounded())
-        {
-            m_Velocity.y = -m_ExploratorJumpMax;
-        }
-
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && isShootAvailable())
-        {
-            if (m_currentThrowableWeapon < m_maxThrowableWeapon)
-            {
-                m_TimePreviousShoot = m_clock.getElapsedTime().asSeconds();
-                m_currentThrowableWeapon++;
-
-                bool direction = m_Sprite.getScale().x > 0;
-                m_listWeapon.push_back(Weapon(GetCenter(), direction, m_TimePreviousShoot));
-            }
-        }
-
-        for (int i = 0; i < (int)m_listWeapon.size(); ++i)
-        {
-            m_listWeapon[i].Update(deltaTime);
-            if (m_listWeapon[i].Finish())
-            {
-                m_listWeapon.erase(std::find(m_listWeapon.begin(), m_listWeapon.end(), m_listWeapon[i]));
-                m_currentThrowableWeapon--;
-            }
-        }
+        UpdateExploratorAction(deltaTime);
     }
     else
     {
-        if (Keyboard::isKeyPressed(Keyboard::Down) && m_BlockDirection[eDirection::Bottom] == false)
-        {
-            m_Velocity.y = m_SpeedMax;
-
-        }
-        else if (Keyboard::isKeyPressed(Keyboard::Up) && m_BlockDirection[eDirection::Top] == false)
-        {
-            m_Velocity.y = -m_SpeedMax;
-        }
-        else
-        {
-            m_Velocity.y *= 0;
-        }
+        UpdateGhostAction();
     }
    
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
     SetBoundingBox(m_Sprite.getGlobalBounds());
+
+    UpdateCollision();
    
+}
+void Player::UpdateCollision()
+{
+    UpdateCollisionWithDisplayable(m_ptr_listDisplayable);
+    UpdateWeaponCollisionWithEnnemy();
 }
 void Player::UpdateCollisionWithDisplayable(std::vector<Displayable*> listDisplayable)
 {
@@ -155,18 +120,67 @@ void Player::UpdateCollisionWithDisplayable(std::vector<Displayable*> listDispla
         }
     }
 }
-void Player::UpdateWeaponCollisionWith(std::vector<Ennemy>& listEnnemy)
+void Player::UpdateWeaponCollisionWithEnnemy()
 {
     if (isGhostMode() == true)
     {
         return;
     }
-    for (int i = 0; i < listEnnemy.size(); ++i)
+    for (int i = 0; i < m_ptr_listEnnemy.size(); ++i)
     {
-        this->CheckWeaponCollisionWithEnnemy(listEnnemy[i]);
+        this->CheckWeaponCollisionWithEnnemy(m_ptr_listEnnemy[i]);
     }
 }
+void Player::UpdateGhostAction()
+{
+    if (Keyboard::isKeyPressed(Keyboard::Down) && m_BlockDirection[eDirection::Bottom] == false)
+    {
+        m_Velocity.y = m_SpeedMax;
 
+    }
+    else if (Keyboard::isKeyPressed(Keyboard::Up) && m_BlockDirection[eDirection::Top] == false)
+    {
+        m_Velocity.y = -m_SpeedMax;
+    }
+    else
+    {
+        m_Velocity.y *= 0;
+    }
+}
+void Player::UpdateExploratorAction(float deltaTime)
+{
+    if (isGrounded() == false || m_BlockDirection[eDirection::Top] == true)
+    {
+        //Fall
+        m_Velocity.y = fmin(m_Velocity.y + 10, m_ExploratorJumpMax);
+    }
+    if (Keyboard::isKeyPressed(Keyboard::Space) && isGrounded())
+    {
+        m_Velocity.y = -m_ExploratorJumpMax;
+    }
+
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && isShootAvailable())
+    {
+        if (m_currentThrowableWeapon < m_maxThrowableWeapon)
+        {
+            m_TimePreviousShoot = m_clock.getElapsedTime().asSeconds();
+            m_currentThrowableWeapon++;
+
+            bool direction = m_Sprite.getScale().x > 0;
+            m_listWeapon.push_back(Weapon(GetCenter(), direction, m_TimePreviousShoot));
+        }
+    }
+
+    for (int i = 0; i < (int)m_listWeapon.size(); ++i)
+    {
+        m_listWeapon[i].Update(deltaTime);
+        if (m_listWeapon[i].ToDestroy())
+        {
+            m_listWeapon.erase(std::find(m_listWeapon.begin(), m_listWeapon.end(), m_listWeapon[i]));
+            m_currentThrowableWeapon--;
+        }
+    }
+}
 
 void Player::setCollision(int collision)
 {

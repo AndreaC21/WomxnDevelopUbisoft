@@ -69,7 +69,7 @@ void Ennemy::Update(float deltaTime)
 	}
 	else if ( SeePlayer()==false)m_Velocity = sf::Vector2f(0.0f, 0.0f);
 	
-
+	
 	if (m_lifePoint <= 0.0f)
 	{
 		m_ToDestroy = true;
@@ -115,7 +115,7 @@ float Ennemy::getCurrentLifePoint() const
 	return this->m_lifePoint;
 }
 
-bool Ennemy::Dead() const
+bool Ennemy::ToDestroy() 
 {
 	return m_lifePoint <= 0.0f;
 }

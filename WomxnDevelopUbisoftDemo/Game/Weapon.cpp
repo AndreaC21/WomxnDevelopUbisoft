@@ -72,7 +72,6 @@ void Weapon::Update(float deltaTime)
 
 bool Weapon::TouchDisplayable(Displayable* d)
 {
-   
     if ( typeid(*d) == typeid(Obstacle) || typeid(*d) == typeid(Platform))
     {
        m_ToDestroy = true;
@@ -86,13 +85,13 @@ bool Weapon::TouchEnnemy(Ennemy& e)
     e.lostLifePoint(this->m_force);
     return true;
 }
+
+bool Weapon::ToDestroy()
+{
+    return m_ToDestroy;
+}
    
 void Weapon::StartEndGame()
 {
 
-}
-
-bool Weapon::Finish()
-{
-    return this->m_ToDestroy;
 }

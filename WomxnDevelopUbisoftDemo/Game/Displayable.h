@@ -14,6 +14,7 @@ public:
 
 	void Update(float deltaTime);
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	bool ToDestroy();
 
 	void StartEndGame() ;
 
