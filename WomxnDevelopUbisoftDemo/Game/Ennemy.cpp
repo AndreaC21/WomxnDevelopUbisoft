@@ -79,7 +79,18 @@ void Ennemy::Update(float deltaTime)
 	m_Sprite.setPosition(m_Position);
 	SetCenter(m_Position.x, m_Position.y);
 }
+void Ennemy::OnCollide(Obstacle&)
+{
 
+}
+void Ennemy::OnCollide(Platform&)
+{
+	m_OnGround = true;
+}
+void Ennemy::OnCollide(Displayable*&)
+{
+
+}
 bool Ennemy::isGrounded() const
 {
 	return this->m_OnGround;
@@ -122,16 +133,16 @@ bool Ennemy::ToDestroy()
 
 bool Ennemy::SeePlayer() const
 {
-	if (m_ptr_Player->isGhostMode()) return false;
+	if (m_ptr_Player->IsGhostMode()) return false;
 
 	return (getPosition().x - m_RadiusDetection < m_ptr_Player->getPosition().x)
 		&& (m_ptr_Player->getPosition().x < getPosition().x + m_RadiusDetection);
 }
 void Ennemy::AttackPlayer()
 {
-	if (CanAttack() && m_ptr_Player->isGhostMode() == false)
+	if (CanAttack() && m_ptr_Player->IsGhostMode() == false)
 	{
-		m_ptr_Player->loseLifePoint(m_attack);
+		m_ptr_Player->LoseLifePoint(m_attack);
 		this->m_TimePreviousAttack = clock.getElapsedTime().asSeconds();
 	}
 }

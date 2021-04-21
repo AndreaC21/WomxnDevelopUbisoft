@@ -70,20 +70,37 @@ void Weapon::Update(float deltaTime)
   
 }
 
-bool Weapon::TouchDisplayable(Displayable* d)
-{
-    if ( typeid(*d) == typeid(Obstacle) || typeid(*d) == typeid(Platform))
-    {
-       m_ToDestroy = true;
-    }
-    return true;
-}
-
-bool Weapon::TouchEnnemy(Ennemy& e)
+void Weapon::OnCollide(Obstacle&)
 {
     m_ToDestroy = true;
+}
+void Weapon::OnCollide(Ennemy& e)
+{
     e.lostLifePoint(this->m_force);
-    return true;
+    m_ToDestroy = true;
+}
+void Weapon::OnCollide(Platform&)
+{
+    m_ToDestroy = true;
+}
+void Weapon::OnCollide(Displayable*& d)
+{
+    if (typeid(*d) == typeid(Obstacle))
+    {
+        Obstacle* o = dynamic_cast<Obstacle*>(d);
+        if (o != nullptr)
+        {
+            return OnCollide(*o);
+        }
+    }
+    if (typeid(*d) == typeid(Platform))
+    {
+        Platform* p = static_cast<Platform*>(d);
+        if (p != nullptr)
+        {
+            return OnCollide(*p);
+        }
+    }
 }
 
 bool Weapon::ToDestroy()

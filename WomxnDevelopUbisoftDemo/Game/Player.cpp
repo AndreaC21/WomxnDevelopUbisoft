@@ -20,15 +20,15 @@ Player::Player() : Displayable(sf::Vector2f(100, 100), "Player\\Idle_1.png")
 
     //Explorator
     m_ExploratorSpeedMax = 300.0f;
-    m_lifePoint_max = 100.0f;
-    m_lifePoint = m_lifePoint_max;
-    m_attack = 25.0f;
-    m_maxThrowableWeapon = 5;
-    m_currentThrowableWeapon = 0;
+    m_LifePointMax = 100.0f;
+    m_lifePoint = m_LifePointMax;
+    m_Attack = 25.0f;
+    m_MaxThrowableWeapon = 5;
+    m_CurrentThrowableWeapon = 0;
     m_DurationShoot = 0.1f;
     m_TimePreviousShoot = 0.0f;
     m_IsDead = false;
-    m_isGhost = false;
+    m_IsGhost = false;
     m_ExploratorJumpMax = 600;
     
     //Ghost
@@ -44,12 +44,8 @@ Player::Player() : Displayable(sf::Vector2f(100, 100), "Player\\Idle_1.png")
     m_Sprite.setOrigin(size.x * 0.5f, 0);
     
     m_BlockDirection = new bool[4]{ false,false,false,false };
-}
+    m_HasSwitched = false;
 
-void Player::Init(std::vector<Ennemy>& ptr_listEnnemy, const std::vector<Displayable*>& ptrDisplayable)
-{
-    m_ptr_listEnnemy = ptr_listEnnemy;
-    m_ptr_listDisplayable = ptrDisplayable;
 }
 
 void Player::Update(float deltaTime)
@@ -59,9 +55,14 @@ void Player::Update(float deltaTime)
         return;
     }
 
-    if (Keyboard::isKeyPressed(Keyboard::G))
+    if (Keyboard::isKeyPressed(Keyboard::G) && m_HasSwitched==false)
     {
         Switch();
+        m_HasSwitched = true;
+    }
+    if (!Keyboard::isKeyPressed(Keyboard::G) && m_HasSwitched == true)
+    {
+        m_HasSwitched = false;
     }
 
     if (Keyboard::isKeyPressed(Keyboard::Right) && m_BlockDirection[eDirection::Right] == false)
@@ -79,7 +80,7 @@ void Player::Update(float deltaTime)
         m_Velocity.x *= 0;
     }
 
-    if (isGhostMode() == false)
+    if (IsGhostMode() == false)
     {
         UpdateExploratorAction(deltaTime);
     }
@@ -91,46 +92,17 @@ void Player::Update(float deltaTime)
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
     SetBoundingBox(m_Sprite.getGlobalBounds());
-
-    UpdateCollision();
    
 }
-void Player::UpdateCollision()
+
+void Player::ResetBlockCollision()
 {
-    UpdateCollisionWithDisplayable(m_ptr_listDisplayable);
-    UpdateWeaponCollisionWithEnnemy();
-}
-void Player::UpdateCollisionWithDisplayable(std::vector<Displayable*> listDisplayable)
-{
-    //ResetCollision
     this->m_BlockDirection[0] = false;
     this->m_BlockDirection[1] = false;
     this->m_BlockDirection[2] = false;
     this->m_BlockDirection[3] = false;
-    for (int i = 0; i < listDisplayable.size(); ++i)
-    {
-        if (this->IsColliding(*listDisplayable[i]))
-        {
-            this->AdjustPosition(listDisplayable[i]);
-        }
+}
 
-        if (isGhostMode() == false)
-        {
-            this->CheckWeaponCollisionWithDisplayable(listDisplayable[i]);
-        }
-    }
-}
-void Player::UpdateWeaponCollisionWithEnnemy()
-{
-    if (isGhostMode() == true)
-    {
-        return;
-    }
-    for (int i = 0; i < m_ptr_listEnnemy.size(); ++i)
-    {
-        this->CheckWeaponCollisionWithEnnemy(m_ptr_listEnnemy[i]);
-    }
-}
 void Player::UpdateGhostAction()
 {
     if (Keyboard::isKeyPressed(Keyboard::Down) && m_BlockDirection[eDirection::Bottom] == false)
@@ -149,40 +121,40 @@ void Player::UpdateGhostAction()
 }
 void Player::UpdateExploratorAction(float deltaTime)
 {
-    if (isGrounded() == false || m_BlockDirection[eDirection::Top] == true)
+    if (IsGrounded() == false || m_BlockDirection[eDirection::Top] == true)
     {
         //Fall
         m_Velocity.y = fmin(m_Velocity.y + 10, m_ExploratorJumpMax);
     }
-    if (Keyboard::isKeyPressed(Keyboard::Space) && isGrounded())
+    if (Keyboard::isKeyPressed(Keyboard::Space) && IsGrounded())
     {
         m_Velocity.y = -m_ExploratorJumpMax;
     }
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && isShootAvailable())
     {
-        if (m_currentThrowableWeapon < m_maxThrowableWeapon)
+        if (m_CurrentThrowableWeapon < m_MaxThrowableWeapon)
         {
-            m_TimePreviousShoot = m_clock.getElapsedTime().asSeconds();
-            m_currentThrowableWeapon++;
+            m_TimePreviousShoot = m_Clock.getElapsedTime().asSeconds();
+            m_CurrentThrowableWeapon++;
 
             bool direction = m_Sprite.getScale().x > 0;
-            m_listWeapon.push_back(Weapon(GetCenter(), direction, m_TimePreviousShoot));
+            m_Weapons.push_back(Weapon(GetCenter(), direction, m_TimePreviousShoot));
         }
     }
 
-    for (int i = 0; i < (int)m_listWeapon.size(); ++i)
+    for (int i = 0; i < (int)m_Weapons.size(); ++i)
     {
-        m_listWeapon[i].Update(deltaTime);
-        if (m_listWeapon[i].ToDestroy())
+        m_Weapons[i].Update(deltaTime);
+        if (m_Weapons[i].ToDestroy())
         {
-            m_listWeapon.erase(std::find(m_listWeapon.begin(), m_listWeapon.end(), m_listWeapon[i]));
-            m_currentThrowableWeapon--;
+            m_Weapons.erase(std::find(m_Weapons.begin(), m_Weapons.end(), m_Weapons[i]));
+            m_CurrentThrowableWeapon--;
         }
     }
 }
 
-void Player::setCollision(int collision)
+void Player::SetCollision(int collision)
 {
     m_BlockDirection[collision] = true;
     
@@ -200,15 +172,15 @@ void Player::setCollision(int collision)
 
 void Player::Switch()
 {
-    if (isGhostMode())
+    if (IsGhostMode())
     {
-        m_isGhost = false;
+        m_IsGhost = false;
         m_Sprite.setTexture(m_Texture);
         m_SpeedMax = m_ExploratorSpeedMax;
     }
     else
     {
-        m_isGhost = true;
+        m_IsGhost = true;
         m_Sprite.setTexture(m_GhostTexture);
         m_SpeedMax = m_GhostSpeedMax;
     }
@@ -222,9 +194,9 @@ void Player::StartEndGame()
 
 }
 
-bool Player::isGhostMode()
+bool Player::IsGhostMode()
 {
-    return  m_isGhost;
+    return  m_IsGhost;
 }
 
 void Player::FlipSprite(bool directionRight)
@@ -238,89 +210,89 @@ void Player::FlipSprite(bool directionRight)
         m_Sprite.setScale(-m_Sprite_Scale, m_Sprite_Scale);
     }
 }
-
-int Player::AdjustPosition(Displayable* d)
+void Player::OnCollide(Obstacle& o)
 {
-    if (isGhostMode())
+    if (IsGhostMode() == false)
     {
-        if (typeid(*d) == typeid(Obstacle))
+        eDirection collisionToBlock = this->CollisionDirection(o);
+        if (collisionToBlock != eDirection::Null)
         {
-            Obstacle* o = dynamic_cast<Obstacle*>(d);
-            if (o != nullptr && o->canGhostTraverse())
-            {
-                return -1;
-            }
-        }
-        else if (typeid(*d) == typeid(Portal))
-        {
-            return -1;
+            SetCollision(collisionToBlock);
         }
     }
-    int index_collision = this->CollisionDirection(*d);
-    if (index_collision != -1)
+}
+void Player::OnCollide(Ennemy&)
+{
+    if (IsGhostMode() == false)
     {
-        setCollision(index_collision);
+        // lose life point
     }
-    return index_collision;
+}
+void Player::OnCollide(Platform& p)
+{
+    eDirection collisionToBlock = this->CollisionDirection(p);
+    if (collisionToBlock != -1)
+    {
+        SetCollision(collisionToBlock);
+    }
+}
+void Player::OnCollide(Displayable*& d)
+{
+    if (typeid(*d) == typeid(Obstacle))
+    {
+        Obstacle* o = dynamic_cast<Obstacle*>(d);
+        if (o != nullptr)
+        {
+            return OnCollide(*o);
+        }
+    }
+    if (typeid(*d) == typeid(Ennemy))
+    {
+        Ennemy* e = dynamic_cast<Ennemy*>(d);
+        if (e != nullptr)
+        {
+            return OnCollide(*e);
+        }
+    }
+    if (typeid(*d) == typeid(Platform))
+    {
+        Platform* p = static_cast<Platform*>(d);
+        if (p != nullptr)
+        {
+            return OnCollide(*p);
+        }
+    }
 }
 bool Player::isShootAvailable() const
 {
-    if (m_clock.getElapsedTime().asSeconds() > this->m_TimePreviousShoot + this->m_DurationShoot)
+    if (m_Clock.getElapsedTime().asSeconds() > this->m_TimePreviousShoot + this->m_DurationShoot)
     {
         return true;
     }
     return false;
 }
-void Player::CheckWeaponCollisionWithDisplayable(Displayable* d)
+std::string Player::GetLifePoint() const
 {
-    for (int j = 0; j < m_listWeapon.size(); ++j)
-    {
-        if (m_listWeapon[j].IsColliding(*d))
-        {
-            m_listWeapon[j].TouchDisplayable(d);
-        }
-    }
+    return std::to_string(m_lifePoint) + "/" + std::to_string(m_LifePointMax);
 }
-void Player::CheckWeaponCollisionWithEnnemy(Ennemy& e)
-{
-    for (int j = 0; j < m_listWeapon.size(); ++j)
-    {
-        if (m_listWeapon[j].IsColliding(e))
-        {
-            m_listWeapon[j].TouchEnnemy(e);
-        }
-    }
-}
-std::string Player::getLifePoint() const
-{
-    return std::to_string(m_lifePoint) + "/" + std::to_string(m_lifePoint_max);
-}
-float Player::getCurrentLifePoint() const
+float Player::GetCurrentLifePoint() const
 {
     return this->m_lifePoint;
 }
-void Player::loseLifePoint(float amount)
+void Player::LoseLifePoint(float amount)
 {
     this->m_lifePoint -= amount;
 }
 
-std::vector<Weapon> Player::getWeapons()
+std::vector<Weapon>& Player::GetWeapons()
 {
-    return m_listWeapon;
+    return m_Weapons;
 }
-bool Player::isGrounded() const
+bool Player::IsGrounded() const
 {
     return this->m_BlockDirection[eDirection::Bottom] == true;
 }
-bool Player::isDead() const
+bool Player::IsDead() const
 {
     return this->m_lifePoint <= 0.0f;
-}
-
-bool Player::getBlockDirection()
-{
-    return m_BlockDirection[0];
-        /*" - bottom : " + std::to_string(m_BlockDirection[1]) +
-        " - left : " + std::to_string(m_BlockDirection[2]) +
-        "- right : " + std::to_string(m_BlockDirection[3])).c_str();*/
 }

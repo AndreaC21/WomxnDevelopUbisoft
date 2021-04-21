@@ -14,16 +14,20 @@ public:
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
 	virtual bool ToDestroy();
+	virtual void OnCollide(Obstacle&) override;
+	virtual void OnCollide(Ennemy&) override;
+	virtual void OnCollide(Platform&) override;
+	virtual void OnCollide(Displayable*&) override;
 
-	bool TouchDisplayable(Displayable* d);
-	bool TouchEnnemy(Ennemy& e);
 	
-
 private:
 	float m_force,m_duration,m_TimeStart,m_TimeEnd;
 	sf::Clock clock;
 	sf::Vector2f m_Velocity;
 	bool  m_Direction,m_ToDestroy;
+
+	
+
 
 public:
 	bool operator==(const Weapon& w)

@@ -71,7 +71,7 @@ public:
     void SetObstacle(int i, int j, bool) const;
     void SetPortal(int i, int j);
    // std::vector<Displayable*> getContainsCaseAt(int i, int j) const;
-    std::vector<Displayable*> GetAllDisplayable() const;
+    std::vector<Displayable*>& GetAllDisplayable();
     int getSize_n() const;
     int getSize_m() const;
     Portal* getPortal() const;
@@ -113,9 +113,7 @@ private:
 
     Case jumpPointSearch();
     Case searchHorizontale(Case pos, int horizontaleDirection, float distance,Case Destination);
-    Case searchDiagoanle();
-
-    
+    Case searchDiagoanle();  
 };
 
 class GameLevel : public Game
@@ -133,7 +131,18 @@ public:
     bool isGameFinish();
     void StartEndGameSuccess();
     void StartEndGameFail();
+
     void UpdateEnnemy(float deltatime);
+    
+    void UpdateCollision(Player&, std::vector<Ennemy>& );
+    void UpdateCollision(Player&, std::vector<Displayable*>&);
+    void UpdateCollision(std::vector<Weapon>&, std::vector<Displayable*>&);
+    void UpdateCollision(std::vector<Weapon>&, std::vector<Ennemy>&);
+
+    Player& GetPlayer();
+    std::vector<Ennemy>& GetEnnemies();
+    std::vector<Weapon>& GetPlayerWeapon();
+    std::vector<Displayable*>& GetDisplayables();
 
 private:
 

@@ -14,7 +14,6 @@ m_level()
 {
     generateLevel();
     generateEnnemy();
-    m_Player.Init(m_listEnnemy, m_level.GetAllDisplayable());
     m_IsFinished = false;
     m_ExecuteEndGame = false;
     m_clock.restart();
@@ -24,7 +23,11 @@ void GameLevel::Update(float deltaTime)
 {
     if (isGameFinish()==false)
     { 
-      
+        UpdateCollision(GetPlayer(), GetDisplayables());
+        UpdateCollision(GetPlayer(), GetEnnemies());
+        UpdateCollision(GetPlayerWeapon(), GetDisplayables());
+        UpdateCollision(GetPlayerWeapon(), GetEnnemies());
+
         m_Player.Update(deltaTime);
         UpdateEnnemy(deltaTime);
   
@@ -69,6 +72,57 @@ void GameLevel::UpdateEnnemy(float deltaTime)
                 }
             }
         }
+        if (m_listEnnemy[i].ToDestroy())
+        {
+            m_listEnnemy.erase(std::find(m_listEnnemy.begin(), m_listEnnemy.end(), m_listEnnemy[i]));
+        }
+    }
+}
+void GameLevel::UpdateCollision(Player& player,std::vector<Displayable*>& displayables)
+{
+    player.ResetBlockCollision();
+    for (Displayable*& displayable : displayables)
+    {
+        if (player.IsColliding(*displayable))
+        {
+            player.OnCollide(displayable);
+        }
+    }
+}
+void GameLevel::UpdateCollision(Player& player, std::vector<Ennemy>& ennemies)
+{
+    for (Ennemy& ennemy : ennemies)
+    {
+        if (player.IsColliding(ennemy))
+        {
+            player.OnCollide(ennemy);
+        }
+    }
+}
+void GameLevel::UpdateCollision(std::vector<Weapon>& weapons, std::vector<Ennemy>& ennemies)
+{
+    for (Ennemy& ennemy : ennemies)
+    {
+        for (Weapon& weapon : weapons)
+        {
+            if (weapon.IsColliding(ennemy))
+            {
+                weapon.OnCollide(ennemy);
+            }
+        }
+    }
+}
+void GameLevel::UpdateCollision(std::vector<Weapon>& weapons, std::vector<Displayable*>& displayables)
+{
+    for (Displayable*& displayables : displayables)
+    {
+        for (Weapon& weapon : weapons)
+        {
+            if (weapon.IsColliding(*displayables))
+            {
+                weapon.OnCollide(displayables);
+            }
+        }
     }
 }
 void GameLevel::Render(sf::RenderTarget& target)
@@ -78,21 +132,22 @@ void GameLevel::Render(sf::RenderTarget& target)
 
     target.draw(m_Player);
     
-    for (int i = 0; i < m_level.GetAllDisplayable().size(); ++i)
+    for (int i = 0; i < GetDisplayables().size(); ++i)
     {
-        target.draw(*m_level.GetAllDisplayable()[i]);
+        target.draw(*GetDisplayables()[i]);
     }
-    if (m_Player.isGhostMode() == false)
+    if (m_Player.IsGhostMode() == false)
     {
-        for (int i = 0; i < m_Player.getWeapons().size(); ++i)
+
+        for (int i = 0; i < GetPlayerWeapon().size(); ++i)
         {
-            target.draw(m_Player.getWeapons()[i]);
+            target.draw(GetPlayerWeapon()[i]);
         }
     }
     
-    for (int i = 0; i < m_listEnnemy.size(); ++i)
+    for (int i = 0; i < GetEnnemies().size(); ++i)
     {
-        target.draw(m_listEnnemy[i]);
+        target.draw(GetEnnemies()[i]);
     }
     if (m_IsFinished)
     {
@@ -107,29 +162,13 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     ImGui::Text("Press F1 to close this debug menu");
     ImGui::NewLine();
 
-    if (ImGui::CollapsingHeader("Collision"))
-    {
-        ImGui::Text("top: %d"+m_Player.getBlockDirection());
-    }
     if (ImGui::CollapsingHeader("Weapon"))
     {
-        ImGui::Text("%d ", (int)m_Player.getWeapons().size()); 
-
-        for (int j = 0; j < m_Player.getWeapons().size(); ++j)
-        {
-            if (m_Player.getWeapons()[j].IsColliding(m_listEnnemy[0]))
-            {
-                ImGui::Text("dino touch");
-            }
-        }
-        for (int j = 0; j <m_listEnnemy.size(); ++j)
-        {
-            ImGui::Text("ennemy %d : life: %s",j,m_listEnnemy[j].getLifePoint().c_str());
-        }
+        ImGui::Text("%d ", (int)GetPlayerWeapon().size()); 
     }
     if (ImGui::CollapsingHeader("Player"))
     {
-       ImGui::Text("%s", m_Player.getLifePoint().c_str());
+       ImGui::Text("%s", m_Player.GetLifePoint().c_str());
     }
     ImGui::End();
 }
@@ -150,7 +189,7 @@ void GameLevel::generateEnnemy()
 
 bool GameLevel::isGameFinish()
 {
-    if (m_Player.isGhostMode() == false)
+    if (m_Player.IsGhostMode() == false)
     {
         if (m_Player.IsColliding(*m_level.getPortal()))
         {
@@ -159,7 +198,7 @@ bool GameLevel::isGameFinish()
 
             return true;
         }
-        else if (m_Player.isDead())
+        else if (m_Player.IsDead())
         {
             m_PlayerSucceed = false;
             m_IsFinished = true;
@@ -192,6 +231,24 @@ void GameLevel::StartEndGameFail()
     m_EndGameSprite.setTexture(m_EngameTexture);
     m_EndGameSprite.setPosition(m_Player.getPosition().x, m_Player.getPosition().y -100);
 }
+
+Player& GameLevel::GetPlayer()
+{
+    return m_Player;
+}
+std::vector<Ennemy>& GameLevel::GetEnnemies()
+{
+    return m_listEnnemy;
+}
+std::vector<Weapon>& GameLevel::GetPlayerWeapon()
+{
+    return GetPlayer().GetWeapons();
+}
+std::vector<Displayable*>& GameLevel::GetDisplayables()
+{
+    return m_level.GetAllDisplayable();
+}
+
 
 #pragma endregion
 
@@ -341,7 +398,7 @@ Level::~Level()
     }
     delete [] grid;
 }
-std::vector<Displayable*> Level::GetAllDisplayable() const
+std::vector<Displayable*>& Level::GetAllDisplayable()
 {
     return m_listDisplayable;
 }
@@ -439,6 +496,7 @@ void Level::BuildListDisplayable()
             }
         }
     }
+    m_listDisplayable.push_back(m_Portal);
 }
 bool Contains(std::vector<std::pair<Case, Level::Direction>> list, std::pair<Case, Level::Direction> element)
 {

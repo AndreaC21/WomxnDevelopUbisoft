@@ -13,6 +13,9 @@ public:
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
 	virtual bool ToDestroy();
+	virtual void OnCollide(Obstacle&) override;
+	virtual void OnCollide(Platform&) override;
+	virtual void OnCollide(Displayable*&) override;
 
 	
 	std::string getLifePoint() const;

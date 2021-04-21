@@ -5,9 +5,16 @@ enum eDirection
     Top = 0,
     Bottom = 1,
     Left = 2,
-    Right = 3
+    Right = 3,
+    Null = -1
 
 };
+
+class Player;
+class Platform;
+class Ennemy;
+class Obstacle;
+class Displayable;
 
 class BoxCollideable
 {
@@ -41,41 +48,7 @@ public:
         return sf::Vector2f(m_BoundingBox.left + (m_BoundingBox.width / 2.0f), m_BoundingBox.top + (m_BoundingBox.height / 2.0f));
     }
 
-    inline const int collisionLeftRight(const BoxCollideable& otherCollider) const
-    {
-        sf::FloatRect other = otherCollider.GetBoundingBox();
-       
-        if ((other.top < m_BoundingBox.top && m_BoundingBox.top < (other.top + other.height)))// ||
-          //  (other.top < (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) < (other.top + other.height)))
-        {
-            //LEFT
-            if (other.left < m_BoundingBox.left && m_BoundingBox.left <= (other.left + other.width))
-                return eDirection::Left;
-            //Right
-            if ( other.left <= (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) <= (other.left+other.width))
-                return eDirection::Right;
-        }
-
-        return -1; 
-    }
-
-    inline const int collisionUpDown(const BoxCollideable& otherCollider) const
-    {
-        sf::FloatRect other = otherCollider.GetBoundingBox();
-        if ((other.left < m_BoundingBox.left && m_BoundingBox.left < (other.left + other.width)) ||
-            (other.left < (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) < (other.left + other.width)))
-        {
-            // TOP
-            if (other.top <= m_BoundingBox.top && m_BoundingBox.top <= (other.top + other.height))
-                return eDirection::Top;
-            // DOWN
-            if (other.top <= (m_BoundingBox.top + m_BoundingBox.height) && (m_BoundingBox.top + m_BoundingBox.height) <= (other.top+other.height))
-                return eDirection::Bottom;
-        }
-        return -1;
-    }
-
-    inline const int CollisionDirection(const BoxCollideable& otherCollider)
+    inline const eDirection CollisionDirection(const BoxCollideable& otherCollider)
     {
         sf::FloatRect other = otherCollider.GetBoundingBox();
 
@@ -88,8 +61,14 @@ public:
         if (other.left <= (m_BoundingBox.left + m_BoundingBox.width) && (m_BoundingBox.left + m_BoundingBox.width) <= (other.left + other.width * 0.5f))
             return eDirection::Right;
 
-        return -1;
+        return eDirection::Null;
     }
+
+    virtual void OnCollide(Obstacle&) {};
+    virtual void OnCollide(Player&) {};
+    virtual void OnCollide(Ennemy&) {};
+    virtual void OnCollide(Platform&) {};
+    virtual void OnCollide(Displayable*&) {};
 
 protected:
     inline void SetBoundingBox(float left, float top, float width, float height)

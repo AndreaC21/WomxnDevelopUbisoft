@@ -12,56 +12,52 @@ public:
 	Player();
 	Player(const Player&);
 
-	void Init(std::vector<Ennemy>& m_ptr_listEnnemy, const std::vector<Displayable*>&);
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
+	virtual void OnCollide(Obstacle&) override;
+	virtual void OnCollide(Ennemy&) override;
+	virtual void OnCollide(Platform&) override;
+	virtual void OnCollide(Displayable*&) override;
 
-	bool isGhostMode();
+	bool IsGhostMode();
 
-	void UpdateCollisionWithDisplayable(std::vector<Displayable*>);
-	void UpdateWeaponCollisionWithEnnemy();
+	bool IsGrounded() const;
+	bool IsDead() const;
+	std::string GetLifePoint() const;
+	float GetCurrentLifePoint() const;
+	void LoseLifePoint(float amount);
+	std::vector<Weapon>& GetWeapons();
 
-	bool isGrounded() const;
-	bool isDead() const;
-	std::string getLifePoint() const;
-	float getCurrentLifePoint() const;
-	void loseLifePoint(float amount);
-	std::vector<Weapon> getWeapons();
-	void CheckWeaponCollisionWithDisplayable(Displayable*);
-	void CheckWeaponCollisionWithEnnemy(Ennemy&);
-
-	bool getBlockDirection();
+	void ResetBlockCollision();
 
 private:
 
 	bool* m_BlockDirection;
 	sf::Vector2f m_Velocity;
 	float m_SpeedMax;
-	std::vector<Ennemy> m_ptr_listEnnemy;
-	std::vector<Displayable*> m_ptr_listDisplayable;
-
+	bool m_HasSwitched;
+	
 	//Explorator
 	bool m_IsDead;
-	float m_lifePoint_max, m_lifePoint, m_attack, m_TimePreviousShoot, m_DurationShoot;
-	std::vector<Weapon> m_listWeapon;
-	int m_currentThrowableWeapon, m_maxThrowableWeapon;
-	sf::Clock m_clock;
+	float m_LifePointMax, m_lifePoint, m_Attack, m_TimePreviousShoot, m_DurationShoot;
+	std::vector<Weapon> m_Weapons;
+	int m_CurrentThrowableWeapon, m_MaxThrowableWeapon;
+	sf::Clock m_Clock;
 	sf::Vector2f m_ExploratorDeadPosition;
 	float m_ExploratorSpeedMax;
 	float m_ExploratorJumpMax;
 
 	//Ghost
 	sf::Texture m_GhostTexture;
-	bool m_isGhost;
+	bool m_IsGhost;
 	float m_GhostDuration;
 	float m_GhostSpeedMax;
 
 	bool isShootAvailable() const;
 	void FlipSprite(bool);
 	void Switch();
-	int AdjustPosition(Displayable* d);
-	void setCollision(int collision);
-	void UpdateCollision();
+	void SetCollision(int collision);
+
 	void UpdateGhostAction();
 	void UpdateExploratorAction(float deltaTime);
 	

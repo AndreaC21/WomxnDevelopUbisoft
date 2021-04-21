@@ -16,6 +16,12 @@ public:
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	bool ToDestroy();
 
+	virtual void OnCollide(Obstacle&) override {};
+	virtual void OnCollide(Player&) override {};
+	virtual void OnCollide(Ennemy&) override {};
+	virtual void OnCollide(Platform&) override {};
+	virtual void OnCollide(Displayable*&) override {};
+
 	void StartEndGame() ;
 
 	sf::Vector2f getPosition() const;
