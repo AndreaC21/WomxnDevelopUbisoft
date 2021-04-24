@@ -64,11 +64,12 @@ public:
         return eDirection::Null;
     }
 
-    virtual void OnCollide(Obstacle&) {};
+   /* virtual void OnCollide(Obstacle&) {};
     virtual void OnCollide(Player&) {};
     virtual void OnCollide(Ennemy&) {};
     virtual void OnCollide(Platform&) {};
-    virtual void OnCollide(Displayable*&) {};
+    virtual void OnCollide(Displayable*&) {};*/
+   // virtual void OnCollide(BoxCollideable&) {};
 
 protected:
     inline void SetBoundingBox(float left, float top, float width, float height)
@@ -107,4 +108,57 @@ protected:
     }
 
     sf::FloatRect m_BoundingBox;
+};
+
+
+class CollisionInfo
+{
+public:
+
+    enum class eEntityType
+    {
+        Player = 0,
+        Ennemy = 1,
+        Obstacle = 2,
+        Platform = 3,
+        Portal = 4,
+        Weapon = 5,
+        Undefined = -1
+    };
+
+    CollisionInfo(BoxCollideable collided, eEntityType collidedType)
+    {
+        m_Collided = collided;
+        m_CollidedType = collidedType;
+    }
+    // GET
+    eEntityType GetCollidedType()
+    {
+        return m_CollidedType;
+    }
+
+    BoxCollideable GetCollided()
+    {
+        return m_Collided;
+    }
+
+
+    //SET
+    void SetCollidedType(eEntityType e)
+    {
+        m_CollidedType = e;
+    }
+
+    void GetCollided(BoxCollideable c)
+    {
+        m_Collided = c;
+    }
+
+private:
+    eEntityType m_CollidedType;
+    BoxCollideable m_Collided;
+};
+class ICollideable
+{
+    virtual void OnCollide() = 0;
 };

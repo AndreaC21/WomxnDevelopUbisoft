@@ -4,35 +4,34 @@
 #include <Game/Platform.h>
 #include <Game/Ennemy.h>
 
-class Weapon : public Displayable
+class Weapon : public Character
 {
 public:
 	Weapon();
-	Weapon(const Weapon& w);
+	Weapon(const Weapon&);
 	Weapon(sf::Vector2f position,bool direction, float timeStart);
 
 	virtual void Update(float deltaTime);
 	virtual void StartEndGame();
-	virtual bool ToDestroy();
-	virtual void OnCollide(Obstacle&) override;
-	virtual void OnCollide(Ennemy&) override;
-	virtual void OnCollide(Platform&) override;
-	virtual void OnCollide(Displayable*&) override;
-
+	bool ToDestroy() const;
+	void OnCollide(Platform&);
+	void OnCollide(Obstacle&);
+	void OnCollide(Ennemy&);
 	
 private:
-	float m_force,m_duration,m_TimeStart,m_TimeEnd;
-	sf::Clock clock;
-	sf::Vector2f m_Velocity;
-	bool  m_Direction,m_ToDestroy;
-
+	float m_Duration,m_TimeStart,m_TimeEnd;
 	
-
+	/*bool m_ToDestroy;
+	sf::Vector2f m_Velocity;
+	float m_SpeedMax;
+	float m_Attack;
+	sf::Clock m_Clock;*/
+	float m_SpeedInc = 10.0f;
 
 public:
 	bool operator==(const Weapon& w)
 	{
-		return (this->m_Position == w.getPosition() && this->m_Direction == w.m_Direction && this->m_TimeStart == w.m_TimeStart);
+		return (this->m_Position == w.m_Position && this->m_TimeStart == w.m_TimeStart);
 
 	}
 };

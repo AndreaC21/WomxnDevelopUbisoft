@@ -49,6 +49,7 @@
     </ClCompile>
     <ClCompile Include="Game\Ennemy.cpp" />
     <ClCompile Include="Game\Portal.cpp" />
+    <ClCompile Include="Game\Character.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -91,6 +92,7 @@
     </ClInclude>
     <ClInclude Include="Game\Ennemy.h" />
     <ClInclude Include="Game\Portal.h" />
+    <ClInclude Include="Game\Character.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

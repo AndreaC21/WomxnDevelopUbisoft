@@ -3,19 +3,18 @@
 #include <Game/Player.h>
 
 
-Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Displayable(sf::Vector2f(static_cast<float>(x * case_size_x + (case_size_x / 2)), static_cast<float>(y)), "Ennemy\\Idle_1.png")
+Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Character(sf::Vector2f(static_cast<float>(x * case_size_x + (case_size_x / 2)), static_cast<float>(y)), "Ennemy\\Idle_1.png")
 {
-	m_radius = 2;
-	m_RadiusDetection = m_radius * case_size_y;
+	m_Radius = 2;
+	m_RadiusDetection = m_Radius * case_size_y;
 	m_Column = y;
 	m_Row = x;
-
+	m_SpeedMax = 200.0f;
 	m_Direction = true;
-	m_attack = 25.0f;
-	m_lifePoint_max = 200.0f;
-	m_lifePoint = m_lifePoint_max;
+	m_Attack = 25.0f;
+	m_MaxLifePoint = 200.0f;
+	m_CurrentLifePoint = m_MaxLifePoint;
 	m_ToDestroy = false;
-	m_OnGround = false;
 	m_TimePreviousAttack = 0.0f;
 	m_DurationAttack = 2.0f;
 
@@ -27,19 +26,14 @@ Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Displa
 
 	m_ptr_Player = p;
 
-	clock.restart();
+	m_Clock.restart();
 }
-Ennemy::Ennemy(const Ennemy& e) : Displayable(e)
+Ennemy::Ennemy(const Ennemy& e) : Character(e)
 {
 	m_Direction = e.m_Direction;
-	m_attack = e.m_attack;
-	m_lifePoint_max = e.m_lifePoint_max;
-	m_lifePoint = e.m_lifePoint;
-	m_ToDestroy = e.m_ToDestroy;
 	m_Column = e.m_Column;
 	m_Row = e.m_Row;
-	m_OnGround = e.m_OnGround;
-	m_radius = e.m_radius;
+	m_Radius = e.m_Radius;
 	m_RadiusDetection = e.m_RadiusDetection;
 	m_ptr_Player = e.m_ptr_Player;
 	m_DurationAttack = e.m_DurationAttack;
@@ -50,27 +44,19 @@ Ennemy::Ennemy(const Ennemy& e) : Displayable(e)
 }
 void Ennemy::Update(float deltaTime)
 {
-	const float SPEED_MAX = 200.0f;
-	
-	if (m_OnGround)
+	if (IsGrounded())
 	{
 		m_Velocity.y = 0;
 	}
 
-	if (m_OnGround && SeePlayer())
+	if (IsGrounded() && SeePlayer())
 	{
-		m_Velocity.x = MoveTo(m_ptr_Player->getPosition(),SPEED_MAX).x;
-
-		if (IsColliding(*m_ptr_Player))
-		{
-			m_Velocity = sf::Vector2f(0.0f, 0.0f);
-			AttackPlayer();
-		}
+		m_Velocity.x = MoveTo(m_ptr_Player->getPosition(), m_SpeedMax).x;
 	}
 	else if ( SeePlayer()==false)m_Velocity = sf::Vector2f(0.0f, 0.0f);
 	
 	
-	if (m_lifePoint <= 0.0f)
+	if (m_CurrentLifePoint <= 0.0f)
 	{
 		m_ToDestroy = true;
 	}
@@ -79,21 +65,29 @@ void Ennemy::Update(float deltaTime)
 	m_Sprite.setPosition(m_Position);
 	SetCenter(m_Position.x, m_Position.y);
 }
-void Ennemy::OnCollide(Obstacle&)
+
+void Ennemy::OnCollide(Player&)
 {
+	m_Velocity = sf::Vector2f(0.0f, 0.0f);
+	AttackPlayer();
+}
+void Ennemy::OnCollide(Obstacle& o)
+{
+	eDirection collisionToBlock = this->CollisionDirection(o);
+	if (collisionToBlock != eDirection::Null)
+	{
+		SetCollision(collisionToBlock);
+	}
 
 }
-void Ennemy::OnCollide(Platform&)
-{
-	m_OnGround = true;
-}
-void Ennemy::OnCollide(Displayable*&)
-{
 
-}
-bool Ennemy::isGrounded() const
+void Ennemy::OnCollide(Platform& p)
 {
-	return this->m_OnGround;
+	eDirection collisionToBlock = this->CollisionDirection(p);
+	if (collisionToBlock != -1)
+	{
+		SetCollision(collisionToBlock);
+	}
 }
 
 void Ennemy::Fall()
@@ -102,33 +96,12 @@ void Ennemy::Fall()
 }
 void Ennemy::StopFall()
 {
-	m_Velocity.y = 0;
-	this->m_OnGround = true;
-
+	SetCollision(eDirection::Bottom);
 }
 
 void Ennemy::StartEndGame()
 {
 
-}
-
-std::string Ennemy::getLifePoint() const
-{
-	return std::to_string(m_lifePoint) + "/" + std::to_string(m_lifePoint_max);
-}
-
-void Ennemy::lostLifePoint(float amount)
-{
-	this->m_lifePoint -= amount;
-}
-float Ennemy::getCurrentLifePoint() const
-{
-	return this->m_lifePoint;
-}
-
-bool Ennemy::ToDestroy() 
-{
-	return m_lifePoint <= 0.0f;
 }
 
 bool Ennemy::SeePlayer() const
@@ -142,14 +115,14 @@ void Ennemy::AttackPlayer()
 {
 	if (CanAttack() && m_ptr_Player->IsGhostMode() == false)
 	{
-		m_ptr_Player->LoseLifePoint(m_attack);
-		this->m_TimePreviousAttack = clock.getElapsedTime().asSeconds();
+		m_ptr_Player->LoseLifePoint(m_Attack);
+		this->m_TimePreviousAttack = m_Clock.getElapsedTime().asSeconds();
 	}
 }
 
 bool Ennemy::CanAttack()
 {
-	return clock.getElapsedTime().asSeconds() > this->m_DurationAttack + this->m_TimePreviousAttack;
+	return m_Clock.getElapsedTime().asSeconds() > this->m_DurationAttack + this->m_TimePreviousAttack;
 }
 
 sf::Vector2f normalize(sf::Vector2f u)

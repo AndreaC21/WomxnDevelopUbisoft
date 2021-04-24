@@ -12,17 +12,7 @@ public:
 	Displayable(sf::Vector2f position, std::string pathTexture, int width, int height, float scale);
 	Displayable(sf::Vector2f position, std::string pathTexture, float scale);
 
-	void Update(float deltaTime);
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-	bool ToDestroy();
-
-	virtual void OnCollide(Obstacle&) override {};
-	virtual void OnCollide(Player&) override {};
-	virtual void OnCollide(Ennemy&) override {};
-	virtual void OnCollide(Platform&) override {};
-	virtual void OnCollide(Displayable*&) override {};
-
-	void StartEndGame() ;
 
 	sf::Vector2f getPosition() const;
 	

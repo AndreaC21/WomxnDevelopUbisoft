@@ -11,46 +11,32 @@ class Case
 {
 public:
     Case();
-    Case(int x, int y);
     Case(const Case&);    
    
     static int size_pixel_x;
     static int size_pixel_y;
   
-    void set(int x, int y);
-    int getX() const;
-    int getY() const;
-    
-    void addPortal(Portal p );
-    void addPlatform(Platform p);
-    void addObstacle(Obstacle o);
-    void addDisplayable(Displayable* d);
+    void AddContent(Portal p );
+    void AddContent(Platform p);
+    void AddContent(Obstacle o);
   
-    std::vector<Platform>& getAllPlatform();
-    std::vector<Obstacle>& getAllObstacle() ;
-    Portal& getPortal();
+    std::vector<Platform>& GetPlatforms();
+    std::vector<Obstacle>& GetObstacles();
+    Portal& GetPortal();
 
-    bool isEmpty() const;
-
-    bool hasObstacle(Platform::Position direction) ;
-
+    bool IsEmpty() const;
+    bool HasObstacle(Platform::ePosition direction);
 
 private:
-    
-    int x, y;
     bool m_empty;
-    Portal portal;
-    std::vector<Platform> m_listPlatform;
-    std::vector<Obstacle> m_listObstacle;
+    Portal m_Portal;
+    std::vector<Platform> m_Platforms;
+    std::vector<Obstacle> m_Obstacles;
     
-    //std::vector<Displayable*> listDisplayable;
-
-
 public:
     inline bool operator==(const Case& c)
     {
         return true;
-        //return (this->x == c.getX() && this->y = c.getY());
     }
    
 
@@ -70,12 +56,16 @@ public:
     void SetPlatform(int i, int j, float rotation=0.0f) const;
     void SetObstacle(int i, int j, bool) const;
     void SetPortal(int i, int j);
-   // std::vector<Displayable*> getContainsCaseAt(int i, int j) const;
+
     std::vector<Displayable*>& GetAllDisplayable();
-    int getSize_n() const;
-    int getSize_m() const;
+    int GetSize_n() const;
+    int GetSize_m() const;
     Portal* getPortal() const;
-    std::vector<Platform*> getColumnsPlatform(int column,int rowToBegin);
+    std::vector<Platform> GetColumnsPlatform(int column,int rowToBegin);
+    std::vector<Platform> GetPlatformAround(int column, int row) const;
+    std::vector<Platform>& GetPlatforms();
+    std::vector<Obstacle>& GetObstacles();
+
 
     void BuildListDisplayable();
 
@@ -106,6 +96,9 @@ private:
     int n,m;
     Portal* m_Portal;
     std::vector<Displayable*> m_listDisplayable;
+    std::vector<Platform> m_Platforms;
+    std::vector<Obstacle> m_Obstacle;
+
     std::vector<std::pair<Case,Direction>> open, closed;
     std::vector<Case> resultJumpPointSearch;
 
@@ -126,7 +119,7 @@ public:
     void RenderDebugMenu(sf::RenderTarget& target) override;
 
     void generateLevel();
-    void generateEnnemy();
+    void GenerateEnnemy();
 
     bool isGameFinish();
     void StartEndGameSuccess();
@@ -134,14 +127,16 @@ public:
 
     void UpdateEnnemy(float deltatime);
     
-    void UpdateCollision(Player&, std::vector<Ennemy>& );
-    void UpdateCollision(Player&, std::vector<Displayable*>&);
-    void UpdateCollision(std::vector<Weapon>&, std::vector<Displayable*>&);
-    void UpdateCollision(std::vector<Weapon>&, std::vector<Ennemy>&);
+    void UpdateCollisionWithPlayer();
+    void UpdateCollisionWithEnnemy();
+    void UpdateCollisionWithWeapons();
+    void UpdateCollision(std::vector<Character>);
 
     Player& GetPlayer();
     std::vector<Ennemy>& GetEnnemies();
     std::vector<Weapon>& GetPlayerWeapon();
+    std::vector<Platform>& GetPlatforms();
+    std::vector<Obstacle>& GetObstacles();
     std::vector<Displayable*>& GetDisplayables();
 
 private:

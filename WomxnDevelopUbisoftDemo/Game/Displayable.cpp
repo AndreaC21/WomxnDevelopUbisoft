@@ -17,6 +17,7 @@ Displayable::Displayable(const Displayable& d)
 	m_rotation = d.m_rotation;
 
 	m_Sprite = d.m_Sprite;
+	m_Sprite_Scale = d.m_Sprite_Scale;
 	m_Sprite.setTexture(m_Texture);
 	m_Sprite.setPosition(m_Position);
 	
@@ -30,10 +31,8 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, bool te
 {
 	m_Position = position;
 	
-	if (m_Texture.loadFromFile(".\\Assets\\" + pathTexture)==false)
-	{
-		
-	}
+	m_Texture.loadFromFile(".\\Assets\\" + pathTexture);
+
 	m_Texture.setRepeated(textureRepeat);
 	m_Sprite.setTexture(m_Texture);
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
@@ -45,10 +44,8 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int wid
 {
 	m_Position = position;
 	
-	if (m_Texture.loadFromFile(".\\Assets\\" + pathTexture) == false)
-	{
+	m_Texture.loadFromFile(".\\Assets\\" + pathTexture);
 
-	}
 	m_Texture.setRepeated(true);
 	m_Sprite.setTexture(m_Texture);
 	m_Sprite.setScale(scale, scale);
@@ -94,14 +91,10 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture,float sc
 	m_IsPlayingEndGame = false;
 
 }
-void Displayable::Update(float deltaTime)
-{
-}
 
 void Displayable::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	// DrawBounding box
-	
 	
 	sf::RectangleShape m_Rectangle;
 	m_Rectangle.setPosition(m_BoundingBox.left, m_BoundingBox.top);
@@ -113,16 +106,6 @@ void Displayable::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 	target.draw(m_Sprite);
 	
-}
-
-
-void Displayable::StartEndGame()
-{
-
-}
-bool Displayable::ToDestroy()
-{
-	return false;
 }
 sf::Vector2f Displayable::getPosition() const
 {

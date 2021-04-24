@@ -9,11 +9,6 @@ public:
 
 	Obstacle(int i, int j, int w, int h,bool b=false);
 
-	//static float scale;
-
-	virtual void Update(float deltaTime);
-	virtual void StartEndGame();
-
 	bool canGhostTraverse();
 private:
 	bool m_traversable;
