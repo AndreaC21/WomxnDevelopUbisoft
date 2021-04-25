@@ -60,7 +60,7 @@ public:
     std::vector<Displayable*>& GetAllDisplayable();
     int GetSize_n() const;
     int GetSize_m() const;
-    Portal* getPortal() const;
+    Portal& GetPortal();
     std::vector<Platform> GetColumnsPlatform(int column,int rowToBegin);
     std::vector<Platform> GetPlatformAround(int column, int row) const;
     std::vector<Platform>& GetPlatforms();
@@ -94,7 +94,7 @@ private:
 
     Case** grid;
     int n,m;
-    Portal* m_Portal;
+    Portal m_Portal;
     std::vector<Displayable*> m_listDisplayable;
     std::vector<Platform> m_Platforms;
     std::vector<Obstacle> m_Obstacle;
@@ -130,9 +130,11 @@ public:
     void UpdateCollisionWithPlayer();
     void UpdateCollisionWithEnnemy();
     void UpdateCollisionWithWeapons();
-    void UpdateCollision(std::vector<Character>);
+    template <typename T>
+    void UpdateCollision(T&);
 
     Player& GetPlayer();
+    Portal& GetPortal();
     std::vector<Ennemy>& GetEnnemies();
     std::vector<Weapon>& GetPlayerWeapon();
     std::vector<Platform>& GetPlatforms();
@@ -149,6 +151,7 @@ private:
     bool m_IsFinished;
     Level m_level;
     sf::Clock m_clock;
+    float m_TimeToCompleteLevel,m_CurrentTimeLevel;
 
     bool m_ExecuteEndGame,m_PlayerSucceed;
     sf::Font m_TextFont;
@@ -156,4 +159,13 @@ private:
     sf::Text m_EndGameTextTime;
     sf::Texture m_EngameTexture;
     sf::Sprite m_EndGameSprite;
+
+    sf::Text m_CurrentTime;
+    sf::RectangleShape m_CurrentTimeBackground;
+    sf::Text m_CurrentGhostTime;
+    sf::RectangleShape m_CurrentTimeGhostBackground;
+  
+    void LoadUI();
+    void UpdateTextTime(bool);
+    void UpdateGhostTextTime();
 };

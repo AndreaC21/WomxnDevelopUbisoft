@@ -14,9 +14,32 @@ m_level()
 {
     generateLevel();
     GenerateEnnemy();
+    LoadUI();
+    m_TimeToCompleteLevel = 5.0f * 60.0f;
+    m_CurrentTimeLevel = m_TimeToCompleteLevel;
     m_IsFinished = false;
     m_ExecuteEndGame = false;
+
     m_clock.restart();
+}
+void GameLevel::LoadUI()
+{
+    m_TextFont.loadFromFile(".\\Assets\\Font\\arial.ttf");
+
+    // TextTime
+    m_CurrentTime.setFont(m_TextFont);
+    m_CurrentTime.setCharacterSize(24);
+    m_CurrentTime.setFillColor(sf::Color::Black);
+    m_CurrentTime.setStyle(sf::Text::Bold);
+    m_CurrentTimeBackground.setSize(sf::Vector2f(70,30));
+
+    // Ghost TextTime
+    m_CurrentGhostTime.setFont(m_TextFont);
+    m_CurrentGhostTime.setCharacterSize(24);
+    m_CurrentGhostTime.setFillColor(sf::Color::Red);
+    m_CurrentGhostTime.setStyle(sf::Text::Bold);
+
+    m_CurrentTimeGhostBackground.setSize(sf::Vector2f(270, 30));
 }
 
 void GameLevel::Update(float deltaTime)
@@ -30,6 +53,15 @@ void GameLevel::Update(float deltaTime)
         m_Player.Update(deltaTime);
         UpdateEnnemy(deltaTime);
   
+        if (m_Player.IsGhostMode())
+        {
+            UpdateGhostTextTime();
+            UpdateTextTime(false);
+        }
+        else
+        {
+            UpdateTextTime(true);
+        }
         m_View.setCenter(m_Player.getPosition());
         m_Window.setView(m_View);
 
@@ -51,25 +83,13 @@ void GameLevel::Update(float deltaTime)
         }
     }
 }
-
+#pragma region Update 
 void GameLevel::UpdateEnnemy(float deltaTime)
 {
     for (int i = 0; i < m_listEnnemy.size(); ++i)
     {
         m_listEnnemy[i].Update(deltaTime);
 
-        if (m_listEnnemy[i].IsGrounded() == false)
-        {
-            m_listEnnemy[i].Fall();
-
-            for (Platform& p : this->m_level.GetColumnsPlatform(m_listEnnemy[i].getSpawnedColumns(), m_listEnnemy[i].getSpawnedRow()))
-            {
-                if (m_listEnnemy[i].IsColliding(p))
-                {
-                    m_listEnnemy[i].StopFall();
-                }
-            }
-        }
         if (m_listEnnemy[i].ToDestroy())
         {
             m_listEnnemy.erase(std::find(m_listEnnemy.begin(), m_listEnnemy.end(), m_listEnnemy[i]));
@@ -81,19 +101,12 @@ void GameLevel::UpdateCollisionWithPlayer()
     Player& player = GetPlayer();
     player.ResetCollision();
 
-    for (Platform& platform : GetPlatforms())
+    UpdateCollision<Player>(player);
+
+    if (player.IsColliding(GetPortal()))
     {
-        if (player.IsColliding(platform))
-        {
-           player.OnCollide(platform);
-        }
-    }
-    for (Obstacle& obstacle : GetObstacles())
-    {
-        if (player.IsColliding(obstacle))
-        {
-            player.OnCollide(obstacle);
-        }
+        m_PlayerSucceed = true;
+        m_IsFinished = true;
     }
 
 }
@@ -103,46 +116,20 @@ void GameLevel::UpdateCollisionWithEnnemy()
     {
         ennemy.ResetCollision();
 
-        for (Platform& platform : GetPlatforms())
-        {
-            if (ennemy.IsColliding(platform))
-            {
-                ennemy.OnCollide(platform);
-            }
-        }
-        for (Obstacle& obstacle : GetObstacles())
-        {
-            if (ennemy.IsColliding(obstacle))
-            {
-                ennemy.OnCollide(obstacle);
-            }
-        }
+        UpdateCollision<Ennemy>(ennemy);
+
         if (ennemy.IsColliding(GetPlayer()))
         {
             ennemy.OnCollide(GetPlayer());
         }
-    }
+    }    
 }
 void GameLevel::UpdateCollisionWithWeapons()
 {
     for (Weapon& weapon : GetPlayerWeapon())
     {
         weapon.ResetCollision();
-
-        for (Platform& platform : GetPlatforms())
-        {
-            if (weapon.IsColliding(platform))
-            {
-                weapon.OnCollide(platform);
-            }
-        }
-        for (Obstacle& obstacle : GetObstacles())
-        {
-            if (weapon.IsColliding(obstacle))
-            {
-                weapon.OnCollide(obstacle);
-            }
-        }
+        UpdateCollision<Weapon>(weapon);
         for (Ennemy& ennemy : GetEnnemies())
         {
             if (weapon.IsColliding(ennemy))
@@ -152,40 +139,57 @@ void GameLevel::UpdateCollisionWithWeapons()
         }
     }
 }
-void GameLevel::UpdateCollision(std::vector<Character> characterToCheck)
+template <typename T>
+void GameLevel::UpdateCollision(T& character)
 {
-    for (Character& character : characterToCheck)
-    {
-        character.ResetCollision();
+    character.ResetCollision();
 
-        for (Platform& platform : GetPlatforms())
+    for (Platform& platform : GetPlatforms())
+    {
+        if (character.IsColliding(platform))
         {
-            if (character.IsColliding(platform))
-            {
-                character.OnCollide(platform);
-            }
+            character.OnCollide(platform);
         }
-        for (Obstacle& obstacle : GetObstacles())
+    }
+    for (Obstacle& obstacle : GetObstacles())
+    {
+        if (character.IsColliding(obstacle))
         {
-            if (character.IsColliding(obstacle))
-            {
-                character.OnCollide(obstacle);
-            }
-        }
-        for (Ennemy& ennemy : GetEnnemies())
-        {
-            if (character.IsColliding(ennemy))
-            {
-                character.OnCollide(ennemy);
-            }
+            character.OnCollide(obstacle);
         }
     }
 }
+
+void GameLevel::UpdateTextTime(bool needUpdate)
+{
+    m_CurrentTimeLevel = m_TimeToCompleteLevel - m_clock.getElapsedTime().asSeconds() + GetPlayer().GetTimeSpendInGhost();
+    m_CurrentTime.setPosition(m_View.getCenter().x + 430,m_View.getCenter().y - 380);
+    m_CurrentTimeBackground.setPosition(m_CurrentTime.getPosition());
+    if (needUpdate)
+    {
+        int time = static_cast<int>(m_CurrentTimeLevel);
+        int second = time % 60;
+        int minute = (time / 60) % 60;
+        std::string extraZero = (second < 10) ? "0" : "";
+        m_CurrentTime.setString("0" + std::to_string(minute) + ":" + extraZero + std::to_string(second));
+    }
+   
+}
+void GameLevel::UpdateGhostTextTime()
+{
+    m_CurrentTimeGhostBackground.setPosition(m_View.getCenter().x, m_View.getCenter().y - 380);
+    m_CurrentGhostTime.setPosition(m_CurrentTimeGhostBackground.getPosition());
+
+    m_CurrentGhostTime.setString("Return to body in 0" + std::to_string(GetPlayer().GetGhostCurrentTime())+"s");
+}
+#pragma endregion
 void GameLevel::Render(sf::RenderTarget& target)
 {
     target.clear(sf::Color(0, 0, 0));
     target.draw(m_Background);
-
+   
+    target.draw(m_CurrentTimeBackground);
+    target.draw(m_CurrentTime);
     target.draw(m_Player);
     
     for (int i = 0; i < GetDisplayables().size(); ++i)
@@ -194,17 +198,23 @@ void GameLevel::Render(sf::RenderTarget& target)
     }
     if (m_Player.IsGhostMode() == false)
     {
-
         for (int i = 0; i < GetPlayerWeapon().size(); ++i)
         {
             target.draw(GetPlayerWeapon()[i]);
         }
+    }
+    else
+    {
+        target.draw(m_CurrentTimeGhostBackground);
+        target.draw(m_CurrentGhostTime);
     }
     
     for (int i = 0; i < GetEnnemies().size(); ++i)
     {
         target.draw(GetEnnemies()[i]);
     }
+
+    
     if (m_IsFinished)
     {
         target.draw(m_EndGameSprite);
@@ -238,8 +248,9 @@ void GameLevel::GenerateEnnemy()
 {
     m_listEnnemy.push_back(Ennemy(0,0, Case::size_pixel_x, Case::size_pixel_y,&m_Player));
     m_listEnnemy.push_back(Ennemy(1,2, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+    m_listEnnemy.push_back(Ennemy(1, 4, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
   //  m_listEnnemy.push_back(Ennemy(3,3, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
-   // m_listEnnemy.push_back(Ennemy(5, 1, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+   // m_listEnnemy.push_back(Ennemy(5, 0, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
 
 }
 
@@ -247,27 +258,21 @@ bool GameLevel::isGameFinish()
 {
     if (m_Player.IsGhostMode() == false)
     {
-        if (m_Player.IsColliding(*m_level.getPortal()))
-        {
-            m_PlayerSucceed = true;
-            m_IsFinished = true;
-
-            return true;
-        }
-        else if (m_Player.IsDead())
+        if (m_Player.IsDead())
         {
             m_PlayerSucceed = false;
             m_IsFinished = true;
-
-            return true;
         }
     }
-    return false;
+    if (m_CurrentTimeLevel <= 0.0f)
+    {
+        m_PlayerSucceed = false;
+        m_IsFinished = true;
+    }
+    return m_IsFinished;
 }
 void GameLevel::StartEndGameSuccess()
 {
-    m_TextFont.loadFromFile(".\\Assets\\Font\\arial.ttf");
-    // Preparation for endgame
     m_EndGameTextTime.setFont(m_TextFont);
     m_EndGameTextTime.setCharacterSize(24);
     m_EndGameTextTime.setFillColor(sf::Color::Red);
@@ -287,10 +292,14 @@ void GameLevel::StartEndGameFail()
     m_EndGameSprite.setTexture(m_EngameTexture);
     m_EndGameSprite.setPosition(m_Player.getPosition().x, m_Player.getPosition().y -100);
 }
-
+#pragma region GETTER
 Player& GameLevel::GetPlayer()
 {
     return m_Player;
+}
+Portal& GameLevel::GetPortal()
+{
+    return m_level.GetPortal();
 }
 std::vector<Ennemy>& GameLevel::GetEnnemies()
 {
@@ -312,7 +321,7 @@ std::vector<Obstacle>& GameLevel::GetObstacles()
 {
     return m_level.GetObstacles();
 }
-
+#pragma endregion
 
 #pragma endregion
 
@@ -443,7 +452,7 @@ std::vector<Displayable*>& Level::GetAllDisplayable()
 }
 void Level::SetPlatform(int i, int j, float rotation) const
 {
-    grid[i][j].AddContent( Platform(i, j, Case::size_pixel_x, Case::size_pixel_y,rotation));
+    grid[i][j].AddContent(Platform(i, j, Case::size_pixel_x, Case::size_pixel_y,rotation));
 }
 void Level::SetObstacle(int i, int j,bool traversable) const
 {
@@ -452,7 +461,7 @@ void Level::SetObstacle(int i, int j,bool traversable) const
 void Level::SetPortal(int i, int j)
 {
     grid[i][j].AddContent(Portal(i, j, Case::size_pixel_x, Case::size_pixel_y));
-    m_Portal = &(grid[i][j].GetPortal());
+    m_Portal = grid[i][j].GetPortal();
 }
 int Level::GetSize_n() const
 {
@@ -492,7 +501,7 @@ std::vector<Obstacle>& Level::GetObstacles()
 {
     return m_Obstacle;
 }
-Portal* Level::getPortal() const
+Portal& Level::GetPortal()
 {
     return this->m_Portal;
 }
@@ -508,18 +517,26 @@ void Level::genereLevel()
         this->SetPlatform(Level::grid_size-1, i, -90.0f); // RIGHT BORDER
     }
     
-    this->SetObstacle(1, 0, true);
+  //  this->SetObstacle(1, 0, true);
 
     this->SetPlatform(0, 1);
 
+    // Horizontal
     this->SetPlatform(0, 1); this->SetPlatform(0, 3); this->SetPlatform(0, 4); this->SetPlatform(0, 6);
     this->SetPlatform(1, 2); this->SetPlatform(1, 3); this->SetPlatform(1, 5);
     this->SetPlatform(2, 1); this->SetPlatform(2, 3); this->SetPlatform(2, 4); this->SetPlatform(2, 6);
     this->SetPlatform(3, 2); this->SetPlatform(3, 4); this->SetPlatform(3, 5);
     this->SetPlatform(4, 1); this->SetPlatform(4, 2); this->SetPlatform(4, 3); this->SetPlatform(4, 4); this->SetPlatform(4, 6);
-    this->SetPlatform(5, 1); this->SetPlatform(5, 6);
-    this->SetPlatform(6, 1); this->SetPlatform(6, 2); this->SetPlatform(6, 3); this->SetPlatform(6, 4); this->SetPlatform(6, 6);
-    this->SetPlatform(7, 4); this->SetPlatform(7, 6);
+    this->SetPlatform(5, 1); this->SetPlatform(5, 3); this->SetPlatform(5, 4); this->SetPlatform(5, 5); this->SetPlatform(5, 6);
+    this->SetPlatform(6, 1); this->SetPlatform(6, 2); this->SetPlatform(6, 3); this->SetPlatform(6, 4);
+
+    //Vertical
+    this->SetPlatform(1,4, 90.0f);
+    this->SetPlatform(2,5, 90.0f);
+    this->SetPlatform(3, 0, 90.0f); this->SetPlatform(3, 4, 90.0f);
+    this->SetPlatform(4, 6, 90.0f);
+    this->SetPlatform(5, 2, 90.0f);
+    this->SetPlatform(6, 3, 90.0f);
     
     this->SetPortal(5, 5);
 
@@ -548,7 +565,7 @@ void Level::BuildListDisplayable()
             }
         }
     }
-    m_listDisplayable.push_back(m_Portal);
+    m_listDisplayable.push_back(&m_Portal);
 }
 bool Contains(std::vector<std::pair<Case, Level::Direction>> list, std::pair<Case, Level::Direction> element)
 {

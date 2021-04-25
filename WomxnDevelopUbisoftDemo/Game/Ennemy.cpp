@@ -20,9 +20,8 @@ Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Charac
 
 	m_Sprite_Scale = 0.4f;
 	m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
-
 	const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
-	SetBoundingBox(m_Position.x, m_Position.y, size.x * m_Sprite_Scale, size.y * m_Sprite_Scale);
+	m_Sprite.setOrigin(size.x * 0.5f, 0);
 
 	m_ptr_Player = p;
 
@@ -38,9 +37,6 @@ Ennemy::Ennemy(const Ennemy& e) : Character(e)
 	m_ptr_Player = e.m_ptr_Player;
 	m_DurationAttack = e.m_DurationAttack;
 	m_TimePreviousAttack = e.m_TimePreviousAttack;
-
-	m_Sprite_Scale = e.m_Sprite_Scale;
-	m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
 }
 void Ennemy::Update(float deltaTime)
 {
@@ -48,13 +44,27 @@ void Ennemy::Update(float deltaTime)
 	{
 		m_Velocity.y = 0;
 	}
+	else
+	{
+		m_Velocity.y = 600.0f;
+	}
 
 	if (IsGrounded() && SeePlayer())
 	{
 		m_Velocity.x = MoveTo(m_ptr_Player->getPosition(), m_SpeedMax).x;
+		if (m_Velocity.x > 0.0f)
+		{
+			FlipSprite(true);
+		}
+		else
+		{
+			FlipSprite(false);
+		}
 	}
-	else if ( SeePlayer()==false)m_Velocity = sf::Vector2f(0.0f, 0.0f);
-	
+	else if (SeePlayer() == false)
+	{
+		m_Velocity.x = 0.0f;
+	}
 	
 	if (m_CurrentLifePoint <= 0.0f)
 	{
@@ -63,7 +73,7 @@ void Ennemy::Update(float deltaTime)
 
 	m_Position += m_Velocity * deltaTime;
 	m_Sprite.setPosition(m_Position);
-	SetCenter(m_Position.x, m_Position.y);
+	SetBoundingBox(m_Sprite.getGlobalBounds());
 }
 
 void Ennemy::OnCollide(Player&)
@@ -78,7 +88,6 @@ void Ennemy::OnCollide(Obstacle& o)
 	{
 		SetCollision(collisionToBlock);
 	}
-
 }
 
 void Ennemy::OnCollide(Platform& p)
@@ -88,15 +97,6 @@ void Ennemy::OnCollide(Platform& p)
 	{
 		SetCollision(collisionToBlock);
 	}
-}
-
-void Ennemy::Fall()
-{
-	m_Velocity.y = 600.0f;
-}
-void Ennemy::StopFall()
-{
-	SetCollision(eDirection::Bottom);
 }
 
 void Ennemy::StartEndGame()

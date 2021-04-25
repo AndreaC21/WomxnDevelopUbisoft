@@ -7,15 +7,7 @@ public:
 	Character();
 	Character(const Character&);
 	Character(sf::Vector2f position, std::string pathTexture);
-
-	virtual void Update(float deltaTime)=0;
-	virtual void StartEndGame()=0;
-	virtual void OnCollide(Platform&) = 0;
-	virtual void OnCollide(Obstacle&) = 0;
-	virtual void OnCollide(Ennemy&) {};
-	virtual void OnCollide(Player&) {};
 	
-
 	//SETTER
 	void SetCollision(eDirection collision);
 
@@ -40,5 +32,12 @@ protected:
 	float m_MaxLifePoint, m_CurrentLifePoint;
 	float m_Attack;
 	sf::Clock m_Clock;
+
+	virtual void Update(float deltaTime) = 0;
+	virtual void StartEndGame() = 0;
+	virtual void OnCollide(Platform&) = 0;
+	virtual void OnCollide(Obstacle&) = 0;
+	virtual void OnCollide(Ennemy&) {};
+	virtual void OnCollide(Player&) {};
 };
 

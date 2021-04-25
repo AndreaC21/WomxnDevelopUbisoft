@@ -53,6 +53,10 @@ void Character::ResetCollision()
     this->m_Collision[eDirection::Left] = false;
     this->m_Collision[eDirection::Right] = false;
 }
+void Character::LoseLifePoint(float amount)
+{
+    this->m_CurrentLifePoint -= amount;
+}
 #pragma endregion
 
 #pragma region GETTER
@@ -66,10 +70,7 @@ float Character::GetCurrentLifePoint() const
 {
     return this->m_CurrentLifePoint;
 }
-void Character::LoseLifePoint(float amount)
-{
-    this->m_CurrentLifePoint -= amount;
-}
+
 bool Character::IsGrounded() const
 {
     return this->m_Collision[eDirection::Bottom] == true;

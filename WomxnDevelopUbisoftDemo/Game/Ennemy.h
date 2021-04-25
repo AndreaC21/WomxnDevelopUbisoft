@@ -17,9 +17,6 @@ public:
 	void OnCollide(Player&);
 	
 	bool SeePlayer() const;
-	void Fall();
-	void StopFall();
-
 	int getSpawnedColumns() const;
 	int getSpawnedRow() const;
 

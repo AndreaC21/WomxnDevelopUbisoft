@@ -17,6 +17,9 @@ public:
 	virtual void OnCollide(Platform&);
 	virtual void OnCollide(Obstacle&);
 	void OnCollide(Ennemy&);
+
+	int GetGhostCurrentTime() const;
+	int GetTimeSpendInGhost() const;
 	bool IsGhostMode();
 	std::vector<Weapon>& GetWeapons();
 
@@ -37,10 +40,15 @@ private:
 	bool m_IsGhost;
 	float m_GhostDuration;
 	float m_GhostSpeedMax;
+	float m_GhostEndTime;
+	int m_CounterGhost;
 
 	bool isShootAvailable() const;	
 	void Switch();
+	void BecomeGhost();
+	void ReturnToPlayer();
 	void UpdateGhostAction();
 	void UpdateExploratorAction(float deltaTime);
+	void SetLifePoint(float);
 	
 };	

@@ -9,12 +9,10 @@ enum eDirection
     Null = -1
 
 };
-
-class Player;
 class Platform;
-class Ennemy;
 class Obstacle;
-class Displayable;
+class Player;
+class Ennemy;
 
 class BoxCollideable
 {
@@ -63,13 +61,6 @@ public:
 
         return eDirection::Null;
     }
-
-   /* virtual void OnCollide(Obstacle&) {};
-    virtual void OnCollide(Player&) {};
-    virtual void OnCollide(Ennemy&) {};
-    virtual void OnCollide(Platform&) {};
-    virtual void OnCollide(Displayable*&) {};*/
-   // virtual void OnCollide(BoxCollideable&) {};
 
 protected:
     inline void SetBoundingBox(float left, float top, float width, float height)

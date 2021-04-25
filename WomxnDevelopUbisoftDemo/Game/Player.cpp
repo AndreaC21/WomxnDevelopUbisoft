@@ -80,8 +80,8 @@ void Player::Update(float deltaTime)
    
     m_Position += m_Velocity * deltaTime;
     m_Sprite.setPosition(m_Position);
+
     SetBoundingBox(m_Sprite.getGlobalBounds());
-   
 }
 
 void Player::UpdateGhostAction()
@@ -98,6 +98,14 @@ void Player::UpdateGhostAction()
     {
         m_Velocity.y *= 0;
     }
+
+    if (m_GhostEndTime <= m_Clock.getElapsedTime().asSeconds())
+    {
+        m_CounterGhost++;
+        ReturnToPlayer();
+        Switch();
+    }
+    
 }
 void Player::UpdateExploratorAction(float deltaTime)
 {
@@ -132,6 +140,12 @@ void Player::UpdateExploratorAction(float deltaTime)
             m_CurrentThrowableWeapon--;
         }
     }
+
+    if (IsDead())
+    {
+        BecomeGhost();
+        Switch();
+    }
 }
 
 void Player::Switch()
@@ -148,14 +162,32 @@ void Player::Switch()
         m_Sprite.setTexture(m_GhostTexture);
         m_SpeedMax = m_GhostSpeedMax;
     }
-    SetBoundingBox(m_Sprite.getGlobalBounds());
-   
+    SetBoundingBox(m_Sprite.getGlobalBounds());  
 }
-
+void Player::BecomeGhost()
+{
+    m_ExploratorDeadPosition = getPosition();
+    m_GhostEndTime = m_Clock.getElapsedTime().asSeconds() + m_GhostDuration;
+}
+void Player::ReturnToPlayer()
+{
+    if ( getPosition() == m_ExploratorDeadPosition)
+    {
+        SetLifePoint(m_MaxLifePoint);
+    }
+    else
+    {
+        SetLifePoint(m_MaxLifePoint * 0.5f);
+    }
+    m_Position = m_ExploratorDeadPosition;
+}
+void Player::SetLifePoint(float lifePoint)
+{
+    m_CurrentLifePoint = lifePoint;
+}
 void Player::StartEndGame()
 {
 	m_IsPlayingEndGame = true;
-
 }
 
 bool Player::IsGhostMode()
@@ -199,7 +231,14 @@ bool Player::isShootAvailable() const
     }
     return false;
 }
-
+int Player::GetGhostCurrentTime() const
+{
+    return static_cast<int>(m_GhostEndTime - m_Clock.getElapsedTime().asSeconds());
+}
+int Player::GetTimeSpendInGhost() const
+{
+    return static_cast<int>(m_CounterGhost * m_GhostDuration);
+}
 std::vector<Weapon>& Player::GetWeapons()
 {
     return m_Weapons;
