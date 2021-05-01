@@ -5,7 +5,7 @@ using namespace sf;
 
 Displayable::Displayable() 
 {
-	m_IsPlayingEndGame = false;
+
 }
 Displayable::Displayable(const Displayable& d)
 {
@@ -13,7 +13,7 @@ Displayable::Displayable(const Displayable& d)
 	
 	m_Position = d.m_Position;
 	m_BoundingBox = d.m_BoundingBox;
-	m_IsPlayingEndGame = d.m_IsPlayingEndGame;
+
 	m_rotation = d.m_rotation;
 
 	m_Sprite = d.m_Sprite;
@@ -25,7 +25,12 @@ Displayable::Displayable(const Displayable& d)
 Displayable::Displayable(std::string pathTexture)
 {
 	m_Texture.loadFromFile(".\\Assets\\" + pathTexture);
-	m_IsPlayingEndGame = false;
+
+}
+Displayable::Displayable(sf::Vector2f position)
+{
+	m_Position = position;
+	m_Sprite.setPosition(m_Position.x, m_Position.y);
 }
 Displayable::Displayable(sf::Vector2f position, std::string pathTexture, bool textureRepeat )
 {
@@ -37,7 +42,6 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, bool te
 	m_Sprite.setTexture(m_Texture);
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
 
-	m_IsPlayingEndGame = false;
 }
 
 Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int width,float scale)
@@ -53,27 +57,20 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int wid
 	
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
 	
-
-	m_IsPlayingEndGame = false;
 	
 }
 Displayable::Displayable(sf::Vector2f position, std::string pathTexture, int width, int height,float scale)
 {
 	m_Position = position;
 
-	if (m_Texture.loadFromFile(".\\Assets\\" + pathTexture) == false)
-	{
+	m_Texture.loadFromFile(".\\Assets\\" + pathTexture);
 
-	}
 	m_Texture.setRepeated(true);
 	m_Sprite.setTexture(m_Texture);
 	m_Sprite.setScale(scale, scale);
 	m_Sprite.setTextureRect(sf::IntRect(0, 0, static_cast<int>(width / scale), static_cast<int>(height / scale)));
 
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
-
-
-	m_IsPlayingEndGame = false;
 
 }
 Displayable::Displayable(sf::Vector2f position, std::string pathTexture,float scale)
@@ -86,9 +83,6 @@ Displayable::Displayable(sf::Vector2f position, std::string pathTexture,float sc
 	m_Sprite.setScale(scale,scale);
 
 	m_Sprite.setPosition(m_Position.x, m_Position.y);
-
-
-	m_IsPlayingEndGame = false;
 
 }
 
@@ -107,7 +101,7 @@ void Displayable::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	target.draw(m_Sprite);
 	
 }
-sf::Vector2f Displayable::getPosition() const
+sf::Vector2f Displayable::GetPosition() const
 {
 	return this->m_Position;
 }

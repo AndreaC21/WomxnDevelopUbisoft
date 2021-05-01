@@ -7,6 +7,7 @@ public:
 	Character();
 	Character(const Character&);
 	Character(sf::Vector2f position, std::string pathTexture);
+	Character(sf::Vector2f position);
 	
 	//SETTER
 	void SetCollision(eDirection collision);
@@ -26,6 +27,7 @@ protected:
 
 	//bool m_Direction;
 	bool m_IsDead, m_ToDestroy;
+	bool m_IsPlayingEndGame;
 	bool* m_Collision;
 	sf::Vector2f m_Velocity;
 	float m_SpeedMax;

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Weapon.h"
-
+#include <Engine/GameSpriteLoader.h>
 
 Weapon::Weapon() : Character()
 {
@@ -16,14 +16,14 @@ Weapon::Weapon(const Weapon& w) : Character(w)
     m_SpeedInc = w.m_SpeedInc;
     m_TimeStart = w.m_TimeStart;
     m_TimeEnd = w.m_TimeEnd;
-
+    m_Sprite.setTexture(GameSpriteLoader::TextureWeapon);
     if (m_SpeedMax > 0)
         m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
     else
         m_Sprite.setScale(-m_Sprite_Scale, m_Sprite_Scale);
 
 }
-Weapon::Weapon(sf::Vector2f position, bool direction, float timeStart) : Character(position, "Weapon\\Kunai.png")
+Weapon::Weapon(sf::Vector2f position, bool direction, float timeStart) : Character(position)
 {
 	m_Attack = 500.0f;
 	m_Duration = 2.0f;
@@ -31,6 +31,8 @@ Weapon::Weapon(sf::Vector2f position, bool direction, float timeStart) : Charact
     m_SpeedMax = (direction == true) ? 500.0f: -500.0f;
     m_SpeedInc = 10.0f;
    
+
+    m_Sprite.setTexture(GameSpriteLoader::TextureWeapon);
     if (m_SpeedMax > 0)
         m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
     else

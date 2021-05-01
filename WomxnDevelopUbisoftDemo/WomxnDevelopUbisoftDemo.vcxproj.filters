@@ -50,6 +50,7 @@
     <ClCompile Include="Game\Ennemy.cpp" />
     <ClCompile Include="Game\Portal.cpp" />
     <ClCompile Include="Game\Character.cpp" />
+    <ClCompile Include="Engine\GameSpriteLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -93,6 +94,7 @@
     <ClInclude Include="Game\Ennemy.h" />
     <ClInclude Include="Game\Portal.h" />
     <ClInclude Include="Game\Character.h" />
+    <ClInclude Include="Engine\GameSpriteLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

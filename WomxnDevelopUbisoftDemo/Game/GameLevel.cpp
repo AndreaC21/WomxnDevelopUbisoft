@@ -8,9 +8,10 @@ int GameLevel::max_size_y = Level::grid_size * Case::size_pixel_y;
 int GameLevel::max_size_x = Level::grid_size * Case::size_pixel_x;
 
 GameLevel::GameLevel() : Game{ "Level 1" },
+m_GameSpriteLoader(),
+m_level(),
 m_Background({ 0,0 }, "Background.png",7.0f),
-m_Player(),
-m_level()
+m_Player()
 {
     generateLevel();
     GenerateEnnemy();
@@ -62,7 +63,7 @@ void GameLevel::Update(float deltaTime)
         {
             UpdateTextTime(true);
         }
-        m_View.setCenter(m_Player.getPosition());
+        m_View.setCenter(m_Player.GetPosition());
         m_Window.setView(m_View);
 
     }
@@ -102,7 +103,7 @@ void GameLevel::UpdateCollisionWithPlayer()
     player.ResetCollision();
 
     UpdateCollision<Player>(player);
-
+   
     if (player.IsColliding(GetPortal()))
     {
         m_PlayerSucceed = true;
@@ -144,7 +145,7 @@ void GameLevel::UpdateCollision(T& character)
 {
     character.ResetCollision();
 
-    for (Platform& platform : GetPlatforms())
+    for (Platform& platform : GetPlatforms() )//m_level.GetPlatformAround(character.GetPosition()))
     {
         if (character.IsColliding(platform))
         {
@@ -172,8 +173,7 @@ void GameLevel::UpdateTextTime(bool needUpdate)
         int minute = (time / 60) % 60;
         std::string extraZero = (second < 10) ? "0" : "";
         m_CurrentTime.setString("0" + std::to_string(minute) + ":" + extraZero + std::to_string(second));
-    }
-   
+    }  
 }
 void GameLevel::UpdateGhostTextTime()
 {
@@ -191,6 +191,7 @@ void GameLevel::Render(sf::RenderTarget& target)
     target.draw(m_CurrentTimeBackground);
     target.draw(m_CurrentTime);
     target.draw(m_Player);
+   
     
     for (int i = 0; i < GetDisplayables().size(); ++i)
     {
@@ -235,6 +236,11 @@ void GameLevel::RenderDebugMenu(sf::RenderTarget& target)
     if (ImGui::CollapsingHeader("Player"))
     {
        ImGui::Text("%s", m_Player.GetLifePoint().c_str());
+       ImGui::Text("Position: %f , %f ", m_Player.GetPosition().x, m_Player.GetPosition().y);
+       int c = m_level.GetIndexByPosition(m_Player.GetPosition()).first;
+       int r = m_level.GetIndexByPosition(m_Player.GetPosition()).second;
+       ImGui::Text("Case: %d , %d ", c, r);
+       ImGui::Text("%d", (int) m_level.GetPlatformAround(m_Player.GetPosition()).size());
     }
     ImGui::End();
 }
@@ -248,9 +254,9 @@ void GameLevel::GenerateEnnemy()
 {
     m_listEnnemy.push_back(Ennemy(0,0, Case::size_pixel_x, Case::size_pixel_y,&m_Player));
     m_listEnnemy.push_back(Ennemy(1,2, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
-    m_listEnnemy.push_back(Ennemy(1, 4, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
-  //  m_listEnnemy.push_back(Ennemy(3,3, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
-   // m_listEnnemy.push_back(Ennemy(5, 0, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+    m_listEnnemy.push_back(Ennemy(2,2, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+    m_listEnnemy.push_back(Ennemy(3,3, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
+    m_listEnnemy.push_back(Ennemy(5, 0, Case::size_pixel_x, Case::size_pixel_y, &m_Player));
 
 }
 
@@ -277,20 +283,20 @@ void GameLevel::StartEndGameSuccess()
     m_EndGameTextTime.setCharacterSize(24);
     m_EndGameTextTime.setFillColor(sf::Color::Red);
     m_EndGameTextTime.setStyle(sf::Text::Bold);
-    m_EndGameTextTime.setPosition(m_Player.getPosition().x, m_Player.getPosition().y -250);
+    m_EndGameTextTime.setPosition(m_Player.GetPosition().x, m_Player.GetPosition().y -250);
 
     m_EngameTexture.loadFromFile(".\\Assets\\EndGame\\Success.png");
 
     m_EndGameTime = m_clock.getElapsedTime().asSeconds();
     m_EndGameTextTime.setString("Time to complete level: " + std::to_string(m_EndGameTime));
     m_EndGameSprite.setTexture(m_EngameTexture);
-    m_EndGameSprite.setPosition(m_Player.getPosition().x, m_Player.getPosition().y - 100);
+    m_EndGameSprite.setPosition(m_Player.GetPosition().x, m_Player.GetPosition().y - 100);
 }
 void GameLevel::StartEndGameFail()
 {
     m_EngameTexture.loadFromFile(".\\Assets\\EndGame\\Fail.png");
     m_EndGameSprite.setTexture(m_EngameTexture);
-    m_EndGameSprite.setPosition(m_Player.getPosition().x, m_Player.getPosition().y -100);
+    m_EndGameSprite.setPosition(m_Player.GetPosition().x, m_Player.GetPosition().y -100);
 }
 #pragma region GETTER
 Player& GameLevel::GetPlayer()
@@ -428,12 +434,12 @@ Level::Level(const Level&l)
         grid[i] = new Case[this->m];
         for (int j = 0; j < m; ++j)
         {
-            this->grid[i][j] = l.at(i, j);
+            this->grid[i][j] = l.At(i, j);
         }
     }
 }
 
-Case Level::at(int i, int j) const
+Case& Level::At(int i, int j) const
 {
     return grid[i][j];
 }
@@ -449,6 +455,13 @@ Level::~Level()
 std::vector<Displayable*>& Level::GetAllDisplayable()
 {
     return m_listDisplayable;
+}
+std::pair<int, int> Level::GetIndexByPosition(sf::Vector2f position) const
+{
+    int i = static_cast<int>(std::floor(position.x / Case::size_pixel_x));
+    int j = static_cast<int>(std::floor(position.y / Case::size_pixel_y));
+
+    return std::pair<int,int>(i,j);
 }
 void Level::SetPlatform(int i, int j, float rotation) const
 {
@@ -473,7 +486,7 @@ int Level::GetSize_m() const
 }
 std::vector<Platform> Level::GetColumnsPlatform(int columToCheck,int rowToBegin )
 {
-    std::vector<Platform> listDisplayable;
+    std::vector<Platform> result;
     for (int j = rowToBegin+1; j < GetSize_m(); ++j)
     {
         if (this->grid[columToCheck][j].IsEmpty() == false)
@@ -482,16 +495,69 @@ std::vector<Platform> Level::GetColumnsPlatform(int columToCheck,int rowToBegin 
             {
                 if ( p.getPos() == Platform::ePosition::TOP)
                 {
-                    listDisplayable.push_back(p);
+                    result.push_back(p);
                 }
             }
         }
     }
-    return listDisplayable;
+    return result;
 }
-std::vector<Platform> Level::GetPlatformAround(int column, int row) const
+std::vector<Platform> Level::GetPlatformsByColumn(const int column,int row)const 
 {
-    return std::vector<Platform>();
+    std::vector<Platform> result;
+
+    if (row > 0)
+    {
+        for (Platform& p : this->At(column, row-1).GetPlatforms())
+        {
+            result.push_back(p);
+        }
+    }
+    for (Platform& p : this->At(column,row).GetPlatforms())
+    {
+        result.push_back(p);
+    }
+    if (row < Level::grid_size)
+    {
+        for (Platform& p : this->At(column, row+1).GetPlatforms())
+        {
+            result.push_back(p);
+        }
+    }
+
+    return result;
+}
+std::vector<Platform> Level::GetPlatformAround(sf::Vector2f position) const
+{
+    std::vector<Platform> result;
+    if (position.x < 0 || position.y < 0)
+    {
+        return result;
+    }
+    std::pair<int, int> indexes = GetIndexByPosition(position);
+    int column = indexes.first;
+    int row = indexes.second;
+
+    if (column > 0)
+    {
+        for (Platform& p : GetPlatformsByColumn(column-1,row))
+        {
+            result.push_back(p);
+        }     
+    }
+    for (Platform& p : GetPlatformsByColumn(column, row))
+    {
+        result.push_back(p);
+    }
+    if (column < Level::grid_size)
+    {
+        for (Platform& p : GetPlatformsByColumn(column + 1, row))
+        {
+            result.push_back(p);
+        }
+    }
+
+    return result;
 }
 std::vector<Platform>& Level::GetPlatforms()
 {
@@ -519,8 +585,6 @@ void Level::genereLevel()
     
   //  this->SetObstacle(1, 0, true);
 
-    this->SetPlatform(0, 1);
-
     // Horizontal
     this->SetPlatform(0, 1); this->SetPlatform(0, 3); this->SetPlatform(0, 4); this->SetPlatform(0, 6);
     this->SetPlatform(1, 2); this->SetPlatform(1, 3); this->SetPlatform(1, 5);
@@ -541,7 +605,6 @@ void Level::genereLevel()
     this->SetPortal(5, 5);
 
     BuildListDisplayable();
-   
 }
 
 void Level::BuildListDisplayable()
@@ -550,14 +613,14 @@ void Level::BuildListDisplayable()
     {
         for (int j = 0; j < this->m; ++j)
         {
-            if (this->at(i, j).IsEmpty() == false)
+            if (this->At(i, j).IsEmpty() == false)
             {
-                for (int h = 0; h < this->at(i, j).GetPlatforms().size(); ++h)
+                for (int h = 0; h < this->At(i, j).GetPlatforms().size(); ++h)
                 {
                     m_listDisplayable.push_back(&(grid[i][j].GetPlatforms()[h]));
                     m_Platforms.push_back(grid[i][j].GetPlatforms()[h]);
                 }
-                for (int h = 0; h < this->at(i, j).GetObstacles().size(); ++h)
+                for (int h = 0; h < this->At(i, j).GetObstacles().size(); ++h)
                 {
                     m_listDisplayable.push_back(&(grid[i][j].GetObstacles()[h]));
                     m_Obstacle.push_back(grid[i][j].GetObstacles()[h]);

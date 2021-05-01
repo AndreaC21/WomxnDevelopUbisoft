@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "Ennemy.h"
 #include <Game/Player.h>
+#include <Engine/GameSpriteLoader.h>
 
 
-Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Character(sf::Vector2f(static_cast<float>(x * case_size_x + (case_size_x / 2)), static_cast<float>(y)), "Ennemy\\Idle_1.png")
+Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Character(sf::Vector2f(static_cast<float>(x * case_size_x + (case_size_x / 2)), static_cast<float>(y)))
 {
 	m_Radius = 2;
 	m_RadiusDetection = m_Radius * case_size_y;
@@ -18,10 +19,10 @@ Ennemy::Ennemy(int x, int y,int case_size_x, int case_size_y, Player*p) : Charac
 	m_TimePreviousAttack = 0.0f;
 	m_DurationAttack = 2.0f;
 
+	m_Sprite.setTexture(GameSpriteLoader::TextureEnnemy);
 	m_Sprite_Scale = 0.4f;
 	m_Sprite.setScale(m_Sprite_Scale, m_Sprite_Scale);
-	const sf::Vector2f size(static_cast<float>(m_Texture.getSize().x), static_cast<float>(m_Texture.getSize().y));
-	m_Sprite.setOrigin(size.x * 0.5f, 0);
+	m_Sprite.setOrigin(m_Sprite.getTexture()->getSize().x * 0.5f, 0);
 
 	m_ptr_Player = p;
 
@@ -37,6 +38,8 @@ Ennemy::Ennemy(const Ennemy& e) : Character(e)
 	m_ptr_Player = e.m_ptr_Player;
 	m_DurationAttack = e.m_DurationAttack;
 	m_TimePreviousAttack = e.m_TimePreviousAttack;
+	m_Sprite.setTexture(GameSpriteLoader::TextureEnnemy);
+	
 }
 void Ennemy::Update(float deltaTime)
 {
@@ -51,7 +54,7 @@ void Ennemy::Update(float deltaTime)
 
 	if (IsGrounded() && SeePlayer())
 	{
-		m_Velocity.x = MoveTo(m_ptr_Player->getPosition(), m_SpeedMax).x;
+		m_Velocity.x = MoveTo(m_ptr_Player->GetPosition(), m_SpeedMax).x;
 		if (m_Velocity.x > 0.0f)
 		{
 			FlipSprite(true);
@@ -108,8 +111,8 @@ bool Ennemy::SeePlayer() const
 {
 	if (m_ptr_Player->IsGhostMode()) return false;
 
-	return (getPosition().x - m_RadiusDetection < m_ptr_Player->getPosition().x)
-		&& (m_ptr_Player->getPosition().x < getPosition().x + m_RadiusDetection);
+	return (GetPosition().x - m_RadiusDetection < m_ptr_Player->GetPosition().x)
+		&& (m_ptr_Player->GetPosition().x < GetPosition().x + m_RadiusDetection);
 }
 void Ennemy::AttackPlayer()
 {
@@ -134,7 +137,7 @@ sf::Vector2f normalize(sf::Vector2f u)
 sf::Vector2f Ennemy::MoveTo(sf::Vector2f target, float maxSpeed)
 {
 	// Seek
-	return normalize(target - getPosition()) * maxSpeed;
+	return normalize(target - GetPosition()) * maxSpeed;
 }
 
 int Ennemy::getSpawnedColumns() const

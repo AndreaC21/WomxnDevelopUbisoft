@@ -19,8 +19,6 @@ public:
 	bool SeePlayer() const;
 	int getSpawnedColumns() const;
 	int getSpawnedRow() const;
-
-	
 	
 private:
 

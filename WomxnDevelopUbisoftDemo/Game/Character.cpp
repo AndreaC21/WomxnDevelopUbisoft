@@ -24,7 +24,22 @@ Character::Character(sf::Vector2f position, std::string pathTexture) : Displayab
 
     m_ToDestroy = true;
     m_IsDead = true;
+    m_IsPlayingEndGame = false;
     m_Velocity = sf::Vector2f(0.0f,0.0f);
+    m_SpeedMax = 0;
+    m_CurrentLifePoint = 0.0f;
+    m_MaxLifePoint = 0.0f;
+    m_Attack = 0.0f;
+}
+
+Character::Character(sf::Vector2f position) : Displayable(position)
+{
+    this->m_Collision = new bool[4]{ false,false,false,false };
+
+    m_ToDestroy = true;
+    m_IsDead = true;
+    m_IsPlayingEndGame = false;
+    m_Velocity = sf::Vector2f(0.0f, 0.0f);
     m_SpeedMax = 0;
     m_CurrentLifePoint = 0.0f;
     m_MaxLifePoint = 0.0f;

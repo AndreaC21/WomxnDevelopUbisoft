@@ -166,12 +166,12 @@ void Player::Switch()
 }
 void Player::BecomeGhost()
 {
-    m_ExploratorDeadPosition = getPosition();
+    m_ExploratorDeadPosition = GetPosition();
     m_GhostEndTime = m_Clock.getElapsedTime().asSeconds() + m_GhostDuration;
 }
 void Player::ReturnToPlayer()
 {
-    if ( getPosition() == m_ExploratorDeadPosition)
+    if ( GetPosition() == m_ExploratorDeadPosition)
     {
         SetLifePoint(m_MaxLifePoint);
     }

@@ -6,7 +6,7 @@
 #include <Game/Obstacle.h>
 #include <Game/Ennemy.h>
 #include <Game/Portal.h>
-
+#include <Engine/GameSpriteLoader.h>
 class Case
 {
 public:
@@ -51,7 +51,7 @@ public:
 
     static int grid_size;
 
-    Case at(int i, int j) const;
+    Case& At(int i, int j) const;
 
     void SetPlatform(int i, int j, float rotation=0.0f) const;
     void SetObstacle(int i, int j, bool) const;
@@ -60,10 +60,12 @@ public:
     std::vector<Displayable*>& GetAllDisplayable();
     int GetSize_n() const;
     int GetSize_m() const;
+    std::pair<int, int> GetIndexByPosition(sf::Vector2f position) const;
     Portal& GetPortal();
     std::vector<Platform> GetColumnsPlatform(int column,int rowToBegin);
-    std::vector<Platform> GetPlatformAround(int column, int row) const;
+    std::vector<Platform> GetPlatformAround(sf::Vector2f) const;
     std::vector<Platform>& GetPlatforms();
+    std::vector<Platform> GetPlatformsByColumn(const int column,int row) const;
     std::vector<Obstacle>& GetObstacles();
 
 
@@ -144,6 +146,7 @@ public:
 private:
 
     static int max_size_x, max_size_y;
+    GameSpriteLoader m_GameSpriteLoader;
     Player m_Player;
     std::vector<Ennemy> m_listEnnemy;
     Displayable m_Background;
@@ -164,6 +167,8 @@ private:
     sf::RectangleShape m_CurrentTimeBackground;
     sf::Text m_CurrentGhostTime;
     sf::RectangleShape m_CurrentTimeGhostBackground;
+
+    
   
     void LoadUI();
     void UpdateTextTime(bool);
