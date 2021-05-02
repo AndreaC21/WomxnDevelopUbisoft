@@ -52,21 +52,42 @@ void Ennemy::Update(float deltaTime)
 		m_Velocity.y = 600.0f;
 	}
 
+	if (m_ptr_Player->IsDead())
+	{
+		m_HasTarget = false;
+	}
+
 	if (IsGrounded() && SeePlayer())
 	{
-		m_Velocity.x = MoveTo(m_ptr_Player->GetPosition(), m_SpeedMax).x;
-		if (m_Velocity.x > 0.0f)
-		{
-			FlipSprite(true);
-		}
-		else
-		{
-			FlipSprite(false);
-		}
+		m_Target = m_ptr_Player->GetPosition();
+		m_HasTarget = true;
+		
 	}
-	else if (SeePlayer() == false)
+	else if (SeePlayer() == false && m_HasTarget==false)
 	{
-		m_Velocity.x = 0.0f;
+		m_Target = - m_ptr_Player->GetPosition();
+		m_HasTarget = true;
+	}
+
+	m_Velocity.x = MoveTo(m_Target, m_SpeedMax).x;
+
+	if (m_Velocity.x > 0.0f) //Right
+	{
+		FlipSprite(true);
+		if (m_Collision[eDirection::Right])
+		{
+			m_Target = -m_Target;
+			FlipSprite(false);
+		}	
+	}
+	else //left
+	{
+		FlipSprite(false);
+		if (m_Collision[eDirection::Left])
+		{
+			m_Target = -m_Target;
+			FlipSprite(true);
+		}	
 	}
 	
 	if (m_CurrentLifePoint <= 0.0f)

@@ -1,12 +1,14 @@
 #pragma once
 
 #include <Engine/Game.h>
+#include <Engine/PathFinding.h>
 #include <Game/Player.h>
 #include <Game/Platform.h>
 #include <Game/Obstacle.h>
 #include <Game/Ennemy.h>
 #include <Game/Portal.h>
 #include <Engine/GameSpriteLoader.h>
+
 class Case
 {
 public:
@@ -23,9 +25,8 @@ public:
     std::vector<Platform>& GetPlatforms();
     std::vector<Obstacle>& GetObstacles();
     Portal& GetPortal();
-
     bool IsEmpty() const;
-    bool HasObstacle(Platform::ePosition direction);
+    bool HasPlatform(Platform::ePosition direction);
 
 private:
     bool m_empty;
@@ -38,8 +39,6 @@ public:
     {
         return true;
     }
-   
-
 };
 
 class Level
@@ -68,29 +67,7 @@ public:
     std::vector<Platform> GetPlatformsByColumn(const int column,int row) const;
     std::vector<Obstacle>& GetObstacles();
 
-
     void BuildListDisplayable();
-
-    struct Direction {
-        int x, y;
-
-        Direction() { x = -1; y = -1; }
-        Direction(int x, int y)
-        {
-            this->x = x;
-            this->y = y;
-        }
-        int getX() const { return this->x; }
-        int getY() const { return this->y; }
-
-        
-        inline bool operator==(const Direction& d)
-        {
-            return true;
-          //  return (this->x == d.getX() && this->y = d.getY());
-        }
-
-    };
 
 private:
 
@@ -101,14 +78,9 @@ private:
     std::vector<Platform> m_Platforms;
     std::vector<Obstacle> m_Obstacle;
 
-    std::vector<std::pair<Case,Direction>> open, closed;
-    std::vector<Case> resultJumpPointSearch;
-
+    
     void genereLevel();
 
-    Case jumpPointSearch();
-    Case searchHorizontale(Case pos, int horizontaleDirection, float distance,Case Destination);
-    Case searchDiagoanle();  
 };
 
 class GameLevel : public Game
@@ -168,6 +140,7 @@ private:
     sf::Text m_CurrentGhostTime;
     sf::RectangleShape m_CurrentTimeGhostBackground;
 
+    //PathFinding m_JPS;
     
   
     void LoadUI();

@@ -23,9 +23,11 @@ public:
 private:
 
 	bool m_Direction;
+	bool m_HasTarget;
 	float m_DurationAttack,m_TimePreviousAttack;
     float m_Radius,m_RadiusDetection;
 	int m_Column, m_Row;
+	sf::Vector2f m_Target;
 	Player* m_ptr_Player;
 
 	void AttackPlayer();
